@@ -91,7 +91,7 @@ export default class Database {
       }
       inside[id] = true;
       let obj = this._objs[id];
-      let entity = {};
+      let entity = {id};
       for (let field in obj) {
         let schema = this._schema[field];
         if (schema.collection) {
@@ -138,8 +138,23 @@ export default class Database {
   }
 
   destroy(id) {
-    //TODO: Recursively delete component structures.
-    //TODO: remove unique lookup entries.
+    let obj = this._objs[id];
+    if (!obj) {
+      return
+    }
+    delete this._objs[id];
+    for (var field in obj) {
+      let schema = this._schema[field];
+      if (schema.type === 'ref' && schema.destroy) {
+        let val = obj[field];
+        let arr = (schema.collection ? Object.keys(val) : [val]);
+        for (let ref of arr) {
+          this.destroy(ref);
+        }
+      } else if (schema.unique) {
+        //XXX remove unique lookup table entry
+      }
+    }
   }
 
   remove(parentId, field, childId) {
