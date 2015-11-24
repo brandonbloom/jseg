@@ -17,6 +17,7 @@ export default class Database {
 
   constructor(schema) {
     this._schema = Object.assign({}, baseSchema, schema);
+    this._objs = {};
     this._lookup = {};
   }
 
@@ -29,10 +30,10 @@ export default class Database {
       console.error('Can not put entity without id: ', entity);
       return;
     }
-    let obj = this._lookup[id];
+    let obj = this._objs[id];
     if (!obj) {
       obj = {};
-      this._lookup[id] = obj;
+      this._objs[id] = obj;
     }
 
     // Write fields.
@@ -70,6 +71,10 @@ export default class Database {
           this.put(val);
         }
         else {
+          if (schema.unique) {
+            let table = this._getTable(field);
+            table[val] = id;
+          }
           obj[field] = val;
         }
       }
@@ -85,7 +90,7 @@ export default class Database {
         return {id};
       }
       inside[id] = true;
-      let obj = this._lookup[id];
+      let obj = this._objs[id];
       let entity = {};
       for (let field in obj) {
         let schema = this._schema[field];
@@ -118,12 +123,23 @@ export default class Database {
     return get(id);
   }
 
+  _getTable(field) {
+    let table = this._lookup[field];
+    if (!table) {
+      table = {};
+      this._lookup[field] = table;
+    }
+    return table;
+  }
+
   lookup(field, value) {
-    //TODO: Implement non-ID based indexing in opt-in string fields.
+    let table = this._getTable(field);
+    return this.get(table[value]);
   }
 
   destroy(id) {
     //TODO: Recursively delete component structures.
+    //TODO: remove unique lookup entries.
   }
 
   remove(parentId, field, childId) {

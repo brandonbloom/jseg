@@ -10,6 +10,7 @@ let schema = {
   },
   username: {
     type: 'string',
+    unique: true,
   },
   mimeType: {
     type: 'string',
@@ -66,3 +67,4 @@ db.put(evidence);
 console.log(db.get('user1'));
 console.log(db.get('ev1'));
 console.log(db.get('file1'));
+console.log(db.lookup('username', 'bbloom'));
