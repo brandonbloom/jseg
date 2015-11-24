@@ -1,0 +1,14 @@
+{
+  "name": "jsgraphthing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "babel-node test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-core": "6.2.1"
+  }
+}
