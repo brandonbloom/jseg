@@ -72,7 +72,16 @@ console.log(db.get('file1'));
 console.log(db.lookup('username', 'bbloom'));
 
 console.log('----');
+db.remove('ev1', 'annotations', 'anno2');
+console.log(db.get('ev1'));
+
+console.log('----');
 db.destroy('ev1');
 console.log(db.get('user1'));
 console.log(db.get('ev1'));
 console.log(db.get('file1'));
+
+console.log('----');
+
+db.destroy('user1');
+console.log(db.get('user1'));

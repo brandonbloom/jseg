@@ -140,24 +140,31 @@ export default class Database {
   destroy(id) {
     let obj = this._objs[id];
     if (!obj) {
-      return
+      return;
     }
     delete this._objs[id];
     for (var field in obj) {
+      let val = obj[field];
       let schema = this._schema[field];
       if (schema.type === 'ref' && schema.destroy) {
-        let val = obj[field];
         let arr = (schema.collection ? Object.keys(val) : [val]);
         for (let ref of arr) {
           this.destroy(ref);
         }
       } else if (schema.unique) {
-        //XXX remove unique lookup table entry
+        let table = this._getTable(field);
+        delete table[val];
       }
     }
   }
 
   remove(parentId, field, childId) {
+    let obj = this._objs[parentId];
+    if (!obj) {
+      return;
+    }
+    let val = obj[field];
+    delete val[childId];
   }
 
 }
