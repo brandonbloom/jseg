@@ -2,27 +2,23 @@ import Database from './db';
 
 let schema = {
   files: {
-    type: 'ref',
+    ref: true,
     collection: true,
   },
   owner: {
-    type: 'ref',
+    ref: true,
   },
   username: {
-    type: 'string',
     unique: true,
   },
   mimeType: {
-    type: 'string',
   },
   time: {
-    type: 'number',
   },
   duration: {
-    type: 'number',
   },
   annotations: {
-    type: 'ref',
+    ref: true,
     collection: true,
     compare: function(x, y) {
       return Math.sign(x.time - y.time);

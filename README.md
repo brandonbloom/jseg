@@ -103,7 +103,9 @@ Just a map of named fields to config.
 
 The `id` property is required for all get/put operations. It's just a string.
 
-### 'ref' type
+### Entity References
+
+`ref: true`
 
 Use field value of `{id: ...}` for related objects.
 

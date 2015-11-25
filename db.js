@@ -50,7 +50,7 @@ export default class Database {
 
       //XXX validation.
       if (schema.collection) {
-        if (schema.type === 'ref') {
+        if (schema.ref) {
           // Write set of referenced IDs, recurse.
           let set = obj[field] || {};
           for (let val of entity[field]) {
@@ -65,7 +65,7 @@ export default class Database {
       }
       else {
         let val = entity[field];
-        if (schema.type === 'ref') {
+        if (schema.ref) {
           if (!val.id) {
             console.warn('Ref does not have id: ', val);
             continue;
@@ -100,7 +100,7 @@ export default class Database {
         if (schema.collection) {
           let arr;
           let compare = schema.compare;
-          if (schema.type === 'ref') {
+          if (schema.ref) {
             arr = Object.keys(obj[field]).map(get);
             compare = compare || compareIds;
           }
@@ -112,7 +112,7 @@ export default class Database {
           entity[field] = arr;
         }
         else {
-          if (schema.type === 'ref') {
+          if (schema.ref) {
             entity[field] = get(obj[field]);
           }
           else {
@@ -149,7 +149,7 @@ export default class Database {
     for (var field in obj) {
       let val = obj[field];
       let schema = this._schema[field];
-      if (schema.type === 'ref' && schema.destroy) {
+      if (schema.ref && schema.destroy) {
         let arr = (schema.collection ? Object.keys(val) : [val]);
         for (let ref of arr) {
           this.destroy(ref);
