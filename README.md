@@ -134,10 +134,11 @@ sort: function compare(x, y) {
 ## TODO
 
 - Dramatically improve docs.
+- Validate this design.
 - Implement reverse relationships.
-- Validate design.
 - Add change listeners.
   - Actually, might not even need/want this. Callers can do it themselves.
+- Add field validators.
 
 
 [1]: https://facebook.github.io/relay/
