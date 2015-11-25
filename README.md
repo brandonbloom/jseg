@@ -90,7 +90,7 @@ Gets an object by a unique field value. See schema.
 
 Removes an object from the database by id. Recurses as per schema.
 
-### remove
+### remove(parentId, field, childId)
 
 Removes a related object from a reference collection field.
 
@@ -135,6 +135,7 @@ sort: function compare(x, y) {
 - Implement reverse relationships.
 - Validate design.
 - Add change listeners.
+  - Actually, might not even need/want this. Callers can do it themselves.
 
 
 [1]: https://facebook.github.io/relay/
