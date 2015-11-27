@@ -60,7 +60,10 @@ along the path towards frontend nirvana.
   - We already need to reshape data from our APIs.
   - Solve durability, caching, and transmission at another layer.
 - Query
-  - Since dataset is small, assume it's OK to do aggressive recursive fetches.
+  - Since dataset is small, assume it's OK to aggressively over-satisfy gets.
+- Change Notifications
+  - Wrap with domain-level store API and implement your own coarse-grain
+    notifications for key entities.
 
 
 ## API
@@ -158,16 +161,11 @@ db.put({id: 'user1', tickets: ['ticket2']});
 Use on ref fields to recursively call `destroy`.
 
 
-## TODO & Known Issues.
+## TODO
 
 - Dramatically improve docs.
-- Validate this design.
-- Implement reverse relationships.
-- Add change listeners.
-  - Actually, might not even need/want this. Callers can do it themselves.
-- Add field validators.
-- Real tests.
-- Lots of runtime consistency checks via schema.
+- Validate this design (in real app) and implementation (with test asserts).
+- Add field validators & runtime consistency checks via schema.
 
 ## Known
 

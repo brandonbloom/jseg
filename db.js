@@ -1,6 +1,3 @@
-//TODO: Reverse relationships.
-//TODO: Change listeners.
-
 let baseSchema = {
   id: {},
 };
