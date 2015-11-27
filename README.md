@@ -71,13 +71,13 @@ let db = new Database(schema)
 
 See below for methods of `db` and schema details.
 
-### get
+### get(id)
 
 Gets a whole tree of related objects by `id`.
 
 Does not traverse in to cycles.
 
-### put
+### put(entity)
 
 Puts a whole tree of related objects. Properties are merged in to existing
 objects with matching `id` fields.
@@ -99,27 +99,15 @@ Removes a related object from a reference collection field.
 
 Just a map of named fields to config.
 
-### ID
+### Entity Identity
 
 The `id` property is required for all get/put operations. It's just a string.
-
-### Entity References
-
-`ref: true`
-
-Use field value of `{id: ...}` for related objects.
 
 ### Unique Lookup
 
 `unique: true`
 
 Use on string fields to enable O(1) indexing for use by `lookup`.
-
-### Cascarding Delete
-
-`destroy: true`
-
-Use on ref fields to recursively call `destroy`.
 
 ### Collections
 
@@ -130,8 +118,47 @@ sort: function compare(x, y) {
 }
 ```
 
+An array field value adds items in to a collection. To remove items, see
+`remove`.
 
-## TODO
+### Entity References
+
+`ref: 'reverse'`
+
+Specifies which fields are references to other objects, and those object's
+reverse relationship field name. Neither, either, or both ends of the
+relationship may be collections.
+
+For example:
+
+```javascript
+let schema = {
+  owner: {
+    ref: 'tickets',
+    collection: true,
+  },
+  tickets: {
+    ref: 'owner',
+  },
+};
+
+```
+
+Use field value of `{id: ...}` for related objects:
+
+```javascript
+db.put({id: 'ticket1', owner: 'user1'});
+db.put({id: 'user1', tickets: ['ticket2']});
+```
+
+### Cascarding Delete
+
+`destroy: true`
+
+Use on ref fields to recursively call `destroy`.
+
+
+## TODO & Known Issues.
 
 - Dramatically improve docs.
 - Validate this design.
@@ -139,6 +166,10 @@ sort: function compare(x, y) {
 - Add change listeners.
   - Actually, might not even need/want this. Callers can do it themselves.
 - Add field validators.
+- Real tests.
+- Lots of runtime consistency checks via schema.
+
+## Known
 
 
 [1]: https://facebook.github.io/relay/

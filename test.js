@@ -2,11 +2,18 @@ import Database from './db';
 
 let schema = {
   files: {
-    ref: true,
+    ref: 'evidence',
     collection: true,
   },
+  evidence: {
+    ref: 'files',
+  },
   owner: {
-    ref: true,
+    ref: 'owned',
+  },
+  owned: {
+    ref: 'owner',
+    collection: true,
   },
   username: {
     unique: true,
@@ -17,8 +24,11 @@ let schema = {
   },
   duration: {
   },
+  annotates: {
+    ref: 'annotations',
+  },
   annotations: {
-    ref: true,
+    ref: 'annotates',
     collection: true,
     compare: function(x, y) {
       return Math.sign(x.time - y.time);
@@ -61,23 +71,27 @@ let evidence = {
 
 db.put(evidence);
 
-console.log(db.get('user1'));
-console.log(db.get('ev1'));
-console.log(db.get('file1'));
+function go(x) {
+  console.log(JSON.stringify(x, null, 2));
+};
 
-console.log(db.lookup('username', 'bbloom'));
+go(db.get('user1'));
+go(db.get('ev1'));
+go(db.get('file1'));
+
+go(db.lookup('username', 'bbloom'));
 
 console.log('----');
 db.remove('ev1', 'annotations', 'anno2');
-console.log(db.get('ev1'));
+go(db.get('ev1'));
 
 console.log('----');
 db.destroy('ev1');
-console.log(db.get('user1'));
-console.log(db.get('ev1'));
-console.log(db.get('file1'));
+go(db.get('user1'));
+go(db.get('ev1'));
+go(db.get('file1'));
 
 console.log('----');
 
 db.destroy('user1');
-console.log(db.get('user1'));
+go(db.get('user1'));

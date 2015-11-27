@@ -2,9 +2,7 @@
 //TODO: Change listeners.
 
 let baseSchema = {
-  id: {
-    type: 'string',
-  },
+  id: {},
 };
 
 let defaultCompare = function(x, y) {
@@ -54,8 +52,17 @@ export default class Database {
           // Write set of referenced IDs, recurse.
           let set = obj[field] || {};
           for (let val of entity[field]) {
-            set[val.id] = true;
-            this.put(val);
+            let target = Object.assign({}, val);
+            if (!set[val.id]) {
+              set[val.id] = true;
+              // Set reverse reference.
+              if (this._schema[schema.ref].collection) {
+                target[schema.ref] = [].concat(target[schema.ref] || [], [{id}]);
+              } else {
+                target[schema.ref] = {id};
+              }
+            }
+            this.put(target);
           }
           obj[field] = set;
         }
@@ -70,8 +77,17 @@ export default class Database {
             console.warn('Ref does not have id: ', val);
             continue;
           }
-          obj[field] = val.id;
-          this.put(val);
+          let target = Object.assign({}, val);
+          if (obj[field] !== val.id) {
+            obj[field] = val.id;
+            // Set reverse relationship.
+            if (this._schema[schema.ref].collection) {
+              target[schema.ref] = [].concat(target[schema.ref] || [], [{id}]);
+            } else {
+              target[schema.ref] = {id};
+            }
+          }
+          this.put(target);
         }
         else {
           if (schema.unique) {
@@ -162,12 +178,22 @@ export default class Database {
   }
 
   remove(parentId, field, childId) {
+    let schema = this._schema[field];
     let obj = this._objs[parentId];
     if (!obj) {
       return;
     }
     let val = obj[field];
+    if (!val[childId]) {
+      return;
+    }
     delete val[childId];
+    if (this._schema[schema.ref].collection) {
+      this.remove(childId, schema.ref, parentId);
+    }
+    else {
+      delete this._objs[childId][field];
+    }
   }
 
 }
