@@ -43,16 +43,24 @@ along the path towards frontend nirvana.
 - Client-side, in-memory only.
   - Assume dataset is small enough to traverse in O(N) time.
 - Plain-old JavaScript objects.
+  - Hierarchical flattening of the graph.
   - Not necessarily just JSON (allow dates, etc).
   - Encourages use via destructuring.
   - All the standard debugging, printing, etc tools should work.
+- Graph-based information model.
+  - Strong support for relationships between entities.
+  - Allow navigation from any node as a root, in any direction.
 - No spooky action at a distance.
   - Every database operation makes an implicit defensive copy.
   - Good enough compared to real immutability.
+  - Safe to directly return to callers of your store API.
 
 
 ## Non-Goals
 
+- Be a Flux "store" by itself.
+  - No one general purpose information model can address all domain needs.
+  - You still need an API for mutations anyway.
 - Persistent Data Structure
   - We don't need undo or anything like that.
   - The debugging benefits are nice, but just gravy.
@@ -61,6 +69,8 @@ along the path towards frontend nirvana.
   - Solve durability, caching, and transmission at another layer.
 - Query
   - Since dataset is small, assume it's OK to aggressively over-satisfy gets.
+  - If you need filtering, use alternative or additional data structure in
+    your store.
 - Change Notifications
   - Wrap with domain-level store API and implement your own coarse-grain
     notifications for key entities.
