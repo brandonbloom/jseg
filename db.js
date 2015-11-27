@@ -17,9 +17,18 @@ let compareIds = function(x, y) {
 export default class Database {
 
   constructor(schema) {
+
     this._schema = Object.assign({}, baseSchema, schema);
     this._objs = {};
+
+    // Allocate lookup tables.
     this._lookup = {};
+    for (let field in schema) {
+      if (schema[field].unique) {
+        this._lookup[field] = {};
+      }
+    };
+
   }
 
   put(entity) {
@@ -91,8 +100,7 @@ export default class Database {
         }
         else {
           if (schema.unique) {
-            let table = this._getTable(field);
-            table[val] = id;
+            this._lookup[field][val] = id;
           }
           obj[field] = val;
         }
@@ -140,18 +148,8 @@ export default class Database {
     return get(id);
   }
 
-  _getTable(field) {
-    let table = this._lookup[field];
-    if (!table) {
-      table = {};
-      this._lookup[field] = table;
-    }
-    return table;
-  }
-
   lookup(field, value) {
-    let table = this._getTable(field);
-    return this.get(table[value]);
+    return this.get(this._lookup[field][value]);
   }
 
   destroy(id) {
@@ -169,8 +167,7 @@ export default class Database {
           this.destroy(ref);
         }
       } else if (schema.unique) {
-        let table = this._getTable(field);
-        delete table[val];
+        delete this._lookup[field][val];
       }
     }
   }
