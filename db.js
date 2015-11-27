@@ -127,13 +127,11 @@ export default class Database {
           arr.sort(compare);
           entity[field] = arr;
         }
+        else if (schema.ref) {
+          entity[field] = get(obj[field]);
+        }
         else {
-          if (schema.ref) {
-            entity[field] = get(obj[field]);
-          }
-          else {
-            entity[field] = obj[field];
-          }
+          entity[field] = obj[field];
         }
       }
       inside[id] = false;
