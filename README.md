@@ -177,8 +177,6 @@ Use on ref fields to recursively call `destroy`.
 - Validate this design (in real app) and implementation (with test asserts).
 - Add field validators & runtime consistency checks via schema.
 
-## Known
-
 
 [1]: https://facebook.github.io/relay/
 [2]: https://github.com/tonsky/datascript
