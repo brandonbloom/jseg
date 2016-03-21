@@ -1,14 +1,26 @@
 let baseSchema = {
-  id: {},
+  lid: {},
 };
 
-let defaultCompare = function(x, y) {
+let defaultCompare = (x, y) => {
   //XXX total order for non-ref types.
   return Math.sign(x - y);
 };
 
-let compareIds = function(x, y) {
-  return Math.sign(x.id - y.id);
+let compareIds = (x, y) => {
+  return Math.sign(x.lid - y.lid);
+};
+
+let validate = (schema, val) => {
+  if (!schema.validate) {
+    return val;
+  }
+  try {
+    return schema.validate(val);
+  } catch (e) {
+    console.error('Error validating: ' + e);
+    return null;
+  }
 };
 
 export default class Database {
@@ -24,23 +36,23 @@ export default class Database {
       if (schema[field].unique) {
         this._lookup[field] = {};
       }
-    };
+    }
 
   }
 
   put(entity) {
 
-    let {id} = entity;
+    let {lid} = entity;
 
     // Lookup or create shallow, mutable, stored object.
-    if (!id) {
-      console.error('Can not put entity without id: ', entity);
+    if (!lid) {
+      console.error('Can not put entity without lid: ', entity);
       return;
     }
-    let obj = this._objs[id];
+    let obj = this._objs[lid];
     if (!obj) {
       obj = {};
-      this._objs[id] = obj;
+      this._objs[lid] = obj;
     }
 
     // Write fields.
@@ -52,52 +64,65 @@ export default class Database {
         continue;
       }
 
-      //XXX validation.
       if (schema.collection) {
         if (schema.ref) {
           // Write set of referenced IDs, recurse.
           let set = obj[field] || {};
-          for (let val of entity[field]) {
+          let values = entity[field] || [];
+          for (let val of values) {
             let target = Object.assign({}, val);
-            if (!set[val.id]) {
-              set[val.id] = true;
+            if (!set[val.lid]) {
+              set[val.lid] = true;
               // Set reverse reference.
               if (this._schema[schema.ref].collection) {
-                target[schema.ref] = [].concat(target[schema.ref] || [], [{id}]);
+                let arr = target[schema.ref] || [];
+                target[schema.ref] = [].concat(arr, [{lid}]);
               } else {
-                target[schema.ref] = {id};
+                target[schema.ref] = {lid};
               }
             }
             this.put(target);
           }
           obj[field] = set;
+        } else {
+          let val = validate(schema, entity[field]);
+          obj[field] = [].concat(val);
         }
-        else {
-          obj[field] = [].concat(entity[field]);
-        }
-      }
-      else {
+      } else {
         let val = entity[field];
         if (schema.ref) {
-          if (!val.id) {
-            console.warn('Ref does not have id: ', val);
+          if (!val) {
+            let targetLid = obj[field];
+            if (targetLid) {
+              if (this._schema[schema.ref].collection) {
+                this.remove(lid, field, targetLid);
+              } else {
+                delete obj[field];
+                delete this._objs[targetLid][field];
+              }
+            }
+            continue;
+          }
+          if (!val.lid) {
+            console.warn('Ref does not have lid: ', val);
             continue;
           }
           let target = Object.assign({}, val);
-          if (obj[field] !== val.id) {
-            obj[field] = val.id;
+          if (obj[field] !== val.lid) {
+            obj[field] = val.lid;
             // Set reverse relationship.
             if (this._schema[schema.ref].collection) {
-              target[schema.ref] = [].concat(target[schema.ref] || [], [{id}]);
+              let arr = target[schema.ref] || [];
+              target[schema.ref] = [].concat(arr, [{lid}]);
             } else {
-              target[schema.ref] = {id};
+              target[schema.ref] = {lid};
             }
           }
           this.put(target);
-        }
-        else {
+        } else {
+          val = validate(schema, val);
           if (schema.unique) {
-            this._lookup[field][val] = id;
+            this._lookup[field][val] = lid;
           }
           obj[field] = val;
         }
@@ -107,54 +132,51 @@ export default class Database {
 
   }
 
-  get(id) {
+  get(rootLid) {
     let inside = {};
-    let get = (id) => {
-      if (inside[id]) {
-        return {id};
+    let rec = (lid) => {
+      if (inside[lid]) {
+        return {lid};
       }
-      inside[id] = true;
-      let obj = this._objs[id];
-      let entity = {id};
+      inside[lid] = true;
+      let obj = this._objs[lid];
+      let entity = {lid};
       for (let field in obj) {
         let schema = this._schema[field];
         if (schema.collection) {
           let arr;
           let compare = schema.compare;
           if (schema.ref) {
-            arr = Object.keys(obj[field]).map(get);
+            arr = Object.keys(obj[field]).map(rec);
             compare = compare || compareIds;
-          }
-          else {
+          } else {
             arr = [].concat(obj[field]);
             compare = compare || defaultCompare;
           }
           arr.sort(compare);
           entity[field] = arr;
-        }
-        else if (schema.ref) {
-          entity[field] = get(obj[field]);
-        }
-        else {
+        } else if (schema.ref) {
+          entity[field] = rec(obj[field]);
+        } else {
           entity[field] = obj[field];
         }
       }
-      inside[id] = false;
+      inside[lid] = false;
       return entity;
     };
-    return get(id);
+    return rec(rootLid);
   }
 
   lookup(field, value) {
     return this.get(this._lookup[field][value]);
   }
 
-  destroy(id) {
-    let obj = this._objs[id];
+  destroy(lid) {
+    let obj = this._objs[lid];
     if (!obj) {
       return;
     }
-    delete this._objs[id];
+    delete this._objs[lid];
     for (var field in obj) {
       let val = obj[field];
       let schema = this._schema[field];
@@ -182,8 +204,7 @@ export default class Database {
     delete val[childId];
     if (this._schema[schema.ref].collection) {
       this.remove(childId, schema.ref, parentId);
-    }
-    else {
+    } else {
       delete this._objs[childId][field];
     }
   }

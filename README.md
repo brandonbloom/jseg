@@ -82,26 +82,31 @@ along the path towards frontend nirvana.
 let db = new Database(schema)
 ```
 
+The only field provided by the default schema, `lid`, is required. It is short
+for "Local ID" and is named such to differentiate it from other application
+specific identifiers. The recommended name for server-specified identifiers is
+"gid", or "Global ID".
+
 See below for methods of `db` and schema details.
 
-### get(id)
+### get(lid)
 
-Gets a whole tree of related objects by `id`.
+Gets a whole tree of related objects by `lid`.
 
 Does not traverse in to cycles.
 
 ### put(entity)
 
 Puts a whole tree of related objects. Properties are merged in to existing
-objects with matching `id` fields.
+objects with matching `lid` fields.
 
 ### lookup(field, value)
 
 Gets an object by a unique field value. See schema.
 
-### destroy(id)
+### destroy(lid)
 
-Removes an object from the database by id. Recurses as per schema.
+Removes an object from the database by lid. Recurses as per schema.
 
 ### remove(parentId, field, childId)
 
@@ -114,13 +119,28 @@ Just a map of named fields to config.
 
 ### Entity Identity
 
-The `id` property is required for all get/put operations. It's just a string.
+The `lid` property is required for all get/put operations. It's just a string.
 
 ### Unique Lookup
 
 `unique: true`
 
 Use on string fields to enable O(1) indexing for use by `lookup`.
+
+### Validation
+
+The `validate` property specifies a function to validate and transform a
+scalar value. Throw an exception to report a validation error or return the
+transformed value.
+
+```javascript
+validate: function(value) {
+  if (!valid(value)) {
+    throw validationError;
+  }
+  return coerce(value);
+}
+```
 
 ### Collections
 
@@ -157,11 +177,11 @@ let schema = {
 
 ```
 
-Use field value of `{id: ...}` for related objects:
+Use field value of `{lid: ...}` for related objects:
 
 ```javascript
-db.put({id: 'ticket1', owner: 'user1'});
-db.put({id: 'user1', tickets: ['ticket2']});
+db.put({lid: 'ticket1', owner: 'user1'});
+db.put({lid: 'user1', tickets: ['ticket2']});
 ```
 
 ### Cascarding Delete
@@ -175,7 +195,6 @@ Use on ref fields to recursively call `destroy`.
 
 - Dramatically improve docs.
 - Validate this design (in real app) and implementation (with test asserts).
-- Add field validators & runtime consistency checks via schema.
 
 
 [1]: https://facebook.github.io/relay/
