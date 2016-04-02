@@ -5,7 +5,8 @@ An in-memory graph database for JavaScript data.
 
 ## Status
 
-Lightly used in at least one real product. Expected to become more widely deployed and battle tested real soon.
+Lightly used in at least one real product. Expected to become more widely
+deployed and battle tested real soon.
 
 Needs a better name. Suggestions?
 
@@ -149,8 +150,8 @@ sort: function compare(x, y) {
 }
 ```
 
-An array field value adds items in to a collection. To remove items, see
-`remove`.
+An array field value adds items in to a collection. The sort comparator
+is optional. To remove items, see `remove`.
 
 ### Entity References
 
