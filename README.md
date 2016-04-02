@@ -5,9 +5,7 @@ An in-memory graph database for JavaScript data.
 
 ## Status
 
-Example Code only really.
-
-I'm probably going to copy/paste this in to a real project.
+Lightly used in at least one real product. Expected to become more widely deployed and battle tested real soon.
 
 Needs a better name. Suggestions?
 
