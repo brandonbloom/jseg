@@ -107,7 +107,7 @@ Gets an object by a unique field value. See schema.
 
 Removes an object from the database by lid. Recurses as per schema.
 
-### remove(parentId, field, childId)
+### remove(parentLid, field, childLid)
 
 Removes a related object from a reference collection field.
 
