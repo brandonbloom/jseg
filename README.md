@@ -180,7 +180,7 @@ Use field value of `{lid: ...}` for related objects:
 
 ```javascript
 db.put({lid: 'ticket1', owner: 'user1'});
-db.put({lid: 'user1', tickets: ['ticket2']});
+db.put({lid: 'user1', tickets: [{lid: 'ticket2'}]});
 ```
 
 ### Cascarding Delete
