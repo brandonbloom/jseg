@@ -40,30 +40,30 @@ let schema = {
 let db = new Database(schema);
 
 let bbloom = {
-  id: 'user1',
+  lid: 'user1',
   username: 'bbloom',
 };
 
 let evidence = {
-  id: 'ev1',
+  lid: 'ev1',
   owner: bbloom,
   files: [
     {
-      id: 'file1',
+      lid: 'file1',
       mimeType: 'video/avi',
     },
     {
-      id: 'file2',
+      lid: 'file2',
       mimeType: 'video/mp4',
     },
   ],
   annotations: [
     {
-      id: 'anno1',
+      lid: 'anno1',
       time: 10.5,
     },
     {
-      id: 'anno2',
+      lid: 'anno2',
       time: 3.1,
     },
   ],
