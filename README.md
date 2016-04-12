@@ -111,6 +111,9 @@ Removes an object from the database by lid. Recurses as per schema.
 
 Removes a related object from a reference collection field.
 
+Also works on non-collection reference fields. Treats the field as a collection
+with a max size of one. Equivalent to setting the field to null.
+
 
 ## Schema
 
