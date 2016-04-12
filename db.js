@@ -180,10 +180,14 @@ export default class Database {
     for (var field in obj) {
       let val = obj[field];
       let schema = this._schema[field];
-      if (schema.ref && schema.destroy) {
+      if (schema.ref) {
         let arr = (schema.collection ? Object.keys(val) : [val]);
         for (let ref of arr) {
-          this.destroy(ref);
+          if (schema.destroy) {
+            this.destroy(ref);
+          } else {
+            this.remove(ref, schema.ref, lid);
+          }
         }
       } else if (schema.unique) {
         delete this._lookup[field][val];
@@ -198,15 +202,18 @@ export default class Database {
       return;
     }
     let val = obj[field];
-    if (!val[childId]) {
-      return;
-    }
-    delete val[childId];
-    if (this._schema[schema.ref].collection) {
-      this.remove(childId, schema.ref, parentId);
+    if (schema.collection) {
+      if (!val[childId]) {
+        return;
+      }
+      delete val[childId];
     } else {
-      delete this._objs[childId][field];
+      if (!val) {
+        return;
+      }
+      delete obj[field];
     }
+    this.remove(childId, schema.ref, parentId);
   }
 
 }
