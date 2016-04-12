@@ -1,4 +1,4 @@
-# jsgraphthinggie
+# JavaScript Entity Graph
 
 An in-memory graph database for JavaScript data.
 
@@ -7,8 +7,6 @@ An in-memory graph database for JavaScript data.
 
 Lightly used in at least one real product. Expected to become more widely
 deployed and battle tested real soon.
-
-Needs a better name. Suggestions?
 
 
 ## Inspiration
