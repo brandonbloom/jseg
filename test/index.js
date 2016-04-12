@@ -1,4 +1,4 @@
-import Database from '../src/jseg';
+import Database from '../src';
 
 let schema = {
   files: {

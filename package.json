@@ -1,15 +1,15 @@
 {
   "name": "jseg",
-  "version": "0.0.4",
+  "version": "0.0.8",
   "description": "JavaScript Entity Graph: A super simple, in-memory, JS graph database.",
   "repository": {
     "type": "git",
     "url": "git://github.com/brandonbloom/jseg.git"
   },
-  "main": "lib/jseg.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "babel src -d lib",
-    "predeploy": "npm run build",
+    "prepublish": "npm run build",
     "test": "babel-node test/index.js"
   },
   "author": "Brandon Bloom",
