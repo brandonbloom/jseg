@@ -2,25 +2,25 @@ let baseSchema = {
   lid: {},
 };
 
-let defaultCompare = (x, y) => {
-  //XXX total order for non-ref types.
-  return Math.sign(x - y);
-};
-
 let compareIds = (x, y) => {
   return Math.sign(x.lid - y.lid);
 };
 
 let validate = (field, schema, val) => {
-  if (!schema.validate) {
-    return val;
-  }
   try {
+    if (!schema.validate) {
+      return val;
+    }
     return schema.validate(val);
   } catch (e) {
     console.error('Error validating ' + field + ': ' + e);
     return null;
   }
+};
+
+//TODO: Validate schema in database constructor, not lazily.
+let schemaError = (field, msg) => {
+  throw Error('Schema error in field ' + field + ': ' + msg);
 };
 
 export default class Database {
@@ -64,30 +64,29 @@ export default class Database {
         continue;
       }
 
+      //TODO: This has gotten quite hairy. Refactor after tests are complete!
       if (schema.collection) {
-        if (schema.ref) {
-          // Write set of referenced IDs, recurse.
-          let set = obj[field] || {};
-          obj[field] = set;
-          let values = entity[field] || [];
-          for (let val of values) {
-            let target = Object.assign({}, val);
-            if (set[val.lid]) {
-              continue;
-            }
-            set[val.lid] = true;
-            // Set reverse reference.
-            if (this._schema[schema.ref].collection) {
-              let arr = target[schema.ref] || [];
-              target[schema.ref] = [].concat(arr, [{lid}]);
-            } else {
-              target[schema.ref] = {lid};
-            }
-            this.put(target);
+        if (!schema.ref) {
+          throw schemaError(field, 'collection without ref');
+        }
+        // Write set of referenced IDs, recurse.
+        let set = obj[field] || {};
+        obj[field] = set;
+        let values = entity[field] || [];
+        for (let val of values) {
+          let target = Object.assign({}, val);
+          if (set[val.lid]) {
+            continue;
           }
-        } else {
-          let val = validate(field, schema, entity[field]);
-          obj[field] = [].concat(val);
+          set[val.lid] = true;
+          // Set reverse reference.
+          if (this._schema[schema.ref].collection) {
+            let arr = target[schema.ref] || [];
+            target[schema.ref] = [].concat(arr, [{lid}]);
+          } else {
+            target[schema.ref] = {lid};
+          }
+          this.put(target);
         }
       } else {
         let val = entity[field];
@@ -120,12 +119,34 @@ export default class Database {
             }
           }
           this.put(target);
+        } else if (schema.unique) {
+          if (schema.unique) {
+            let table = this._lookup[field];
+            let oldVal = obj[field];
+            if (oldVal) {
+              delete table[oldVal];
+            }
+            if (val === null) {
+              delete obj[field]
+            } else {
+              val = validate(field, schema, val);
+              if (typeof val !== 'string' || !val) {
+                console.error('Unique fields must be non-empty strings');
+                continue;
+              }
+              table[val] = lid;
+              obj[field] = val;
+            }
+          }
+        } else if (val === null) {
+          delete obj[field];
         } else {
           val = validate(field, schema, val);
-          if (schema.unique) {
-            this._lookup[field][val] = lid;
+          if (val === null) {
+            delete obj[field];
+          } else {
+            obj[field] = val;
           }
-          obj[field] = val;
         }
       }
 
@@ -145,15 +166,8 @@ export default class Database {
       for (let field in obj) {
         let schema = this._schema[field];
         if (schema.collection) {
-          let arr;
-          let compare = schema.compare;
-          if (schema.ref) {
-            arr = Object.keys(obj[field]).map(rec);
-            compare = compare || compareIds;
-          } else {
-            arr = [].concat(obj[field]);
-            compare = compare || defaultCompare;
-          }
+          let arr = Object.keys(obj[field]).map(rec);
+          let compare = schema.compare || compareIds;
           if (arr.length > 0) {
             arr.sort(compare);
             entity[field] = arr;
@@ -171,7 +185,8 @@ export default class Database {
   }
 
   lookup(field, value) {
-    return this.get(this._lookup[field][value]);
+    let lid = this._lookup[field][value];
+    return (lid || null) && this.get(lid);
   }
 
   destroy(lid) {
@@ -205,6 +220,9 @@ export default class Database {
       return;
     }
     let val = obj[field];
+    if (!schema.ref) {
+      throw schemaError(field, 'Cannot remove from non ref field');
+    }
     if (schema.collection) {
       if (!val[childId]) {
         return;

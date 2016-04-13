@@ -5,7 +5,7 @@ An in-memory graph database for JavaScript data.
 
 ## Status
 
-Lightly used in at least one real product. Expected to become more widely
+Moderately used in at least one real product. Expected to become more widely
 deployed and battle tested real soon.
 
 
@@ -76,15 +76,18 @@ along the path towards frontend nirvana.
 ## API
 
 ```javascript
-let db = new Database(schema)
+import Database from 'jseg';
+let db = new Database(schema);
 ```
 
 The only field provided by the default schema, `lid`, is required. It is short
 for "Local ID" and is named such to differentiate it from other application
 specific identifiers. The recommended name for server-specified identifiers is
-"gid", or "Global ID".
+"gid", short for "Global ID".
 
 See below for methods of `db` and schema details.
+
+See [the test file][./test/index.js] for many concrete examples.
 
 ### get(lid)
 
@@ -93,6 +96,8 @@ Gets a whole tree of related objects by `lid`.
 Does not traverse in to cycles.
 
 Null field values and empty collections are omitted.
+
+Always returns an object, with at least a `lid` field.
 
 ### put(entity)
 
@@ -103,7 +108,9 @@ Fields set to null are deleted from entities.
 
 ### lookup(field, value)
 
-Gets an object by a unique field value. See schema.
+Gets an object by a unique field string value. See schema.
+
+Returns null if no entity exists.
 
 ### destroy(lid)
 
@@ -137,6 +144,8 @@ The `validate` property specifies a function to validate and transform a
 scalar value. Throw an exception to report a validation error or return the
 transformed value.
 
+Validation errors are logged and invalid fields are discarded.
+
 ```javascript
 validate: function(value) {
   if (!valid(value)) {
@@ -145,18 +154,6 @@ validate: function(value) {
   return coerce(value);
 }
 ```
-
-### Collections
-
-```
-collection: true,
-sort: function compare(x, y) {
-  ...
-}
-```
-
-An array field value adds items in to a collection. The sort comparator
-is optional. To remove items, see `remove`.
 
 ### Entity References
 
@@ -188,17 +185,24 @@ db.put({lid: 'ticket1', owner: 'user1'});
 db.put({lid: 'user1', tickets: [{lid: 'ticket2'}]});
 ```
 
+### Collections
+
+```
+ref: 'reverse',
+collection: true,
+sort: function compare(x, y) {
+  ...
+}
+```
+
+An array field value adds entities in to a set. The sort comparator is
+optional. To remove entities, see `remove`.
+
 ### Cascarding Delete
 
 `destroy: true`
 
 Use on ref fields to recursively call `destroy`.
-
-
-## TODO
-
-- Dramatically improve docs.
-- Validate this design (in real app) and implementation (with test asserts).
 
 
 [1]: https://facebook.github.io/relay/
