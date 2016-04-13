@@ -11,14 +11,14 @@ let compareIds = (x, y) => {
   return Math.sign(x.lid - y.lid);
 };
 
-let validate = (schema, val) => {
+let validate = (field, schema, val) => {
   if (!schema.validate) {
     return val;
   }
   try {
     return schema.validate(val);
   } catch (e) {
-    console.error('Error validating: ' + e);
+    console.error('Error validating ' + field + ': ' + e);
     return null;
   }
 };
@@ -85,7 +85,7 @@ export default class Database {
           }
           obj[field] = set;
         } else {
-          let val = validate(schema, entity[field]);
+          let val = validate(field, schema, entity[field]);
           obj[field] = [].concat(val);
         }
       } else {
@@ -120,7 +120,7 @@ export default class Database {
           }
           this.put(target);
         } else {
-          val = validate(schema, val);
+          val = validate(field, schema, val);
           if (schema.unique) {
             this._lookup[field][val] = lid;
           }
