@@ -92,10 +92,14 @@ Gets a whole tree of related objects by `lid`.
 
 Does not traverse in to cycles.
 
+Null field values and empty collections are omitted.
+
 ### put(entity)
 
 Puts a whole tree of related objects. Properties are merged in to existing
 objects with matching `lid` fields.
+
+Fields set to null are deleted from entities.
 
 ### lookup(field, value)
 

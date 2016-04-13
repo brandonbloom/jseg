@@ -154,8 +154,10 @@ export default class Database {
             arr = [].concat(obj[field]);
             compare = compare || defaultCompare;
           }
-          arr.sort(compare);
-          entity[field] = arr;
+          if (arr.length > 0) {
+            arr.sort(compare);
+            entity[field] = arr;
+          }
         } else if (schema.ref) {
           entity[field] = rec(obj[field]);
         } else {
