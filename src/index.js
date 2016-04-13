@@ -68,22 +68,23 @@ export default class Database {
         if (schema.ref) {
           // Write set of referenced IDs, recurse.
           let set = obj[field] || {};
+          obj[field] = set;
           let values = entity[field] || [];
           for (let val of values) {
             let target = Object.assign({}, val);
-            if (!set[val.lid]) {
-              set[val.lid] = true;
-              // Set reverse reference.
-              if (this._schema[schema.ref].collection) {
-                let arr = target[schema.ref] || [];
-                target[schema.ref] = [].concat(arr, [{lid}]);
-              } else {
-                target[schema.ref] = {lid};
-              }
+            if (set[val.lid]) {
+              continue;
+            }
+            set[val.lid] = true;
+            // Set reverse reference.
+            if (this._schema[schema.ref].collection) {
+              let arr = target[schema.ref] || [];
+              target[schema.ref] = [].concat(arr, [{lid}]);
+            } else {
+              target[schema.ref] = {lid};
             }
             this.put(target);
           }
-          obj[field] = set;
         } else {
           let val = validate(field, schema, entity[field]);
           obj[field] = [].concat(val);
