@@ -87,7 +87,7 @@ specific identifiers. The recommended name for server-specified identifiers is
 
 See below for methods of `db` and schema details.
 
-See [the test file][./test/index.js] for many concrete examples.
+See [the test file](./test/index.js) for many concrete examples.
 
 ### get(lid)
 
