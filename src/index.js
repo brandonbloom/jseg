@@ -211,7 +211,7 @@ export default class Database {
       }
       delete val[childId];
     } else {
-      if (!val) {
+      if (val !== childId) {
         return;
       }
       delete obj[field];
