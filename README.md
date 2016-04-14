@@ -102,7 +102,7 @@ Always returns an object, with at least a `lid` field.
 ### put(entity)
 
 Puts a whole tree of related objects. Properties are merged in to existing
-objects with matching `lid` fields.
+objects with matching `lid` fields. Collection properties are set-unioned.
 
 Fields set to null are deleted from entities.
 
@@ -131,6 +131,11 @@ Just a map of named fields to config.
 ### Entity Identity
 
 The `lid` property is required for all get/put operations. It's just a string.
+
+### Scalar Fields
+
+By default, fields may contain scalar values. These are typically strings and
+numbers, but any JavaScript non-null, non-undefined object is allowed.
 
 ### Unique Lookup
 
@@ -197,6 +202,10 @@ sort: function compare(x, y) {
 
 An array field value adds entities in to a set. The sort comparator is
 optional. To remove entities, see `remove`.
+
+For non-reference collections, simply put an array or other collection
+in a scalar field. Note that puts to scalar fields perform a complete
+value replacement, not set union.
 
 ### Cascarding Delete
 
