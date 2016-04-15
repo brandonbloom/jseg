@@ -207,7 +207,7 @@ For non-reference collections, simply put an array or other collection
 in a scalar field. Note that puts to scalar fields perform a complete
 value replacement, not set union.
 
-### Cascarding Delete
+### Cascading Delete
 
 `destroy: true`
 
