@@ -154,13 +154,16 @@ export default class Database {
 
   }
 
-  get(rootLid) {
+  get(rootLid, options) {
+    let {maxDepth} = options || {};
     let inside = {};
+    let depth = 0;
     let rec = (lid) => {
-      if (inside[lid]) {
+      if ((maxDepth && depth > maxDepth) || inside[lid]) {
         return {lid};
       }
       inside[lid] = true;
+      depth++;
       let obj = this._objs[lid];
       let entity = {lid};
       for (let field in obj) {
@@ -179,14 +182,15 @@ export default class Database {
         }
       }
       inside[lid] = false;
+      depth--;
       return entity;
     };
     return rec(rootLid);
   }
 
-  lookup(field, value) {
+  lookup(field, value, options) {
     let lid = this._lookup[field][value];
-    return (lid || null) && this.get(lid);
+    return (lid || null) && this.get(lid, options);
   }
 
   destroy(lid) {

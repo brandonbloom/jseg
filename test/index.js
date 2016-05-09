@@ -5,12 +5,12 @@ import Database from '../src';
 
 let db;
 
-let check = (lid, expected) => {
-  assert.deepStrictEqual(db.get(lid), expected);
+let check = (lid, expected, options) => {
+  assert.deepStrictEqual(db.get(lid, options), expected);
 };
 
-let checkLookup = (field, value, expected) => {
-  assert.deepStrictEqual(db.lookup(field, value), expected);
+let checkLookup = (field, value, expected, options) => {
+  assert.deepStrictEqual(db.lookup(field, value, options), expected);
 };
 
 
@@ -544,3 +544,104 @@ db.put({
 
 db.destroy('x');
 check('x', {lid: 'x'});
+
+
+// Recursion Limiting.
+
+db = new Database({
+  prev: {
+    ref: 'next',
+  },
+  next: {
+    ref: 'prev',
+  },
+});
+
+db.put({
+  lid: 'a',
+  next: {
+    lid: 'b',
+    next: {
+      lid: 'c',
+      next: {
+        lid: 'd',
+      },
+    },
+  },
+});
+
+check('a', {
+  lid: 'a',
+  next: {
+    lid: 'b',
+    next: {
+      lid: 'c',
+      next: {
+        lid: 'd',
+        prev: {
+          lid: 'c',
+        }
+      },
+      prev: {
+        lid: 'b',
+      }
+    },
+    prev: {
+      lid: 'a',
+    },
+  },
+}, {maxDepth: 0});
+
+check('a', {
+  lid: 'a',
+  next: {
+    lid: 'b',
+    next: {
+      lid: 'c',
+      next: {
+        lid: 'd',
+        prev: {
+          lid: 'c',
+        }
+      },
+      prev: {
+        lid: 'b',
+      }
+    },
+    prev: {
+      lid: 'a',
+    },
+  },
+}, {maxDepth: 100});
+
+check('a', {
+  lid: 'a',
+  next: {
+    lid: 'b',
+    next: {
+      lid: 'c',
+    },
+    prev: {
+      lid: 'a',
+    },
+  },
+}, {maxDepth: 1});
+
+check('a', {
+  lid: 'a',
+  next: {
+    lid: 'b',
+    next: {
+      lid: 'c',
+      next: {
+        lid: 'd',
+      },
+      prev: {
+        lid: 'b',
+      },
+    },
+    prev: {
+      lid: 'a',
+    },
+  },
+}, {maxDepth: 2});

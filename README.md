@@ -38,7 +38,7 @@ along the path towards frontend nirvana.
 ## Goals
 
 - Client-side, in-memory only.
-  - Assume dataset is small enough to traverse in O(N) time.
+  - Assume dataset is small enough to traverse portions of it many times.
 - Plain-old JavaScript objects.
   - Hierarchical flattening of the graph.
   - Not necessarily just JSON (allow dates, etc).
@@ -89,11 +89,13 @@ See below for methods of `db` and schema details.
 
 See [the test file](./test/index.js) for many concrete examples.
 
-### get(lid)
+### get(lid, options)
 
-Gets a whole tree of related objects by `lid`.
+Gets a whole tree of related objects by `lid`. The `options` parameter may be
+omitted.
 
-Does not traverse in to cycles.
+Does not traverse in to cycles. If the `maxDepth` option is specified, will
+not recurse more than that many levels.
 
 Null field values and empty collections are omitted.
 
@@ -106,9 +108,11 @@ objects with matching `lid` fields. Collection properties are set-unioned.
 
 Fields set to null are deleted from entities.
 
-### lookup(field, value)
+### lookup(field, value, options)
 
 Gets an object by a unique field string value. See schema.
+
+The `options` parameter may be omitted and is delegated to `get`.
 
 Returns null if no entity exists.
 
