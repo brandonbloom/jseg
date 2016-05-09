@@ -5,12 +5,17 @@ import Database from '../src';
 
 let db;
 
+let assertEquiv = (actual, expected) => {
+  //XXX This assumes the children collection come back in insertion order.
+  assert.deepStrictEqual(actual, expected);
+};
+
 let check = (lid, expected, options) => {
-  assert.deepStrictEqual(db.get(lid, options), expected);
+  assertEquiv(db.get(lid, options), expected);
 };
 
 let checkLookup = (field, value, expected, options) => {
-  assert.deepStrictEqual(db.lookup(field, value, options), expected);
+  assertEquiv(db.lookup(field, value, options), expected);
 };
 
 
@@ -195,7 +200,6 @@ db.put({
   ],
 });
 
-//XXX This assumes the children collection come back in insertion order.
 check('parent', {
   lid: 'parent',
   oneToMany: [
