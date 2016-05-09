@@ -241,4 +241,8 @@ export default class Database {
     this.remove(childId, schema.ref, parentId);
   }
 
+  lids() {
+    return Object.keys(this._objs);
+  }
+
 }

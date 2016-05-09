@@ -127,6 +127,10 @@ Removes a related object from a reference collection field.
 Also works on non-collection reference fields. Treats the field as a collection
 with a max size of one. Equivalent to setting the field to null.
 
+### lids()
+
+Returns an array of all lids for all objects in the database.
+
 
 ## Schema
 

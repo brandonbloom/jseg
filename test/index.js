@@ -7,6 +7,7 @@ let db;
 
 let assertEquiv = (actual, expected) => {
   //XXX This assumes the children collection come back in insertion order.
+  //TODO: Treat arrays as sets.
   assert.deepStrictEqual(actual, expected);
 };
 
@@ -317,6 +318,8 @@ db.get('x', {
     },
   ],
 });
+
+assertEquiv(db.lids(), ['a', 'x', 'b', 'y']);
 
 db.remove('x', 'mToN', 'a');
 db.get('x', {
