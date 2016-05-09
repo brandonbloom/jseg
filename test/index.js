@@ -618,6 +618,13 @@ check('a', {
   lid: 'a',
   next: {
     lid: 'b',
+  },
+}, {maxDepth: 1});
+
+check('a', {
+  lid: 'a',
+  next: {
+    lid: 'b',
     next: {
       lid: 'c',
     },
@@ -625,7 +632,7 @@ check('a', {
       lid: 'a',
     },
   },
-}, {maxDepth: 1});
+}, {maxDepth: 2});
 
 check('a', {
   lid: 'a',
@@ -644,4 +651,4 @@ check('a', {
       lid: 'a',
     },
   },
-}, {maxDepth: 2});
+}, {maxDepth: 3});

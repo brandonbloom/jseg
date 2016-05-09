@@ -157,7 +157,7 @@ export default class Database {
   get(rootLid, options) {
     let {maxDepth} = options || {};
     let inside = {};
-    let depth = 0;
+    let depth = 1;
     let rec = (lid) => {
       if ((maxDepth && depth > maxDepth) || inside[lid]) {
         return {lid};

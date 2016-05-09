@@ -1,6 +1,6 @@
 {
   "name": "jseg",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "JavaScript Entity Graph: A super simple, in-memory, JS graph database.",
   "repository": {
     "type": "git",
