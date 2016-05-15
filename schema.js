@@ -46,11 +46,10 @@ class Composite extends Type {
     include(this);
 
     // Maps field names defined directly on this type to definition structures.
-    // Definition structures have form {kind, from, name, type, ...}.
-    //   `from` is the defining type. `type` is the attribute type.
-    //   Possible kinds are 'attribute' and 'relation'.
-    //   If kind is 'relation', structure also has 'cardinality'.
-    //     Possible cardinalities are 'one' and 'many'.
+    // Definition structures have form {kind, from, name, type}.
+    //   from: Type on which this field was defined.
+    //   type: Attribute value's type.
+    //   kind: One of 'scalar', 'oneToMany', 'manyToOne', or 'manyToMany'.
     // Populated during type system finalization.
     this._fieldDefs = {};
 
@@ -83,6 +82,18 @@ class Trait extends Composite {
   }
 
 }
+
+
+let relationKinds = {
+  one: {
+    one: 'oneToOne',
+    many: 'oneToMany',
+  },
+  many: {
+    one: 'manyToOne',
+    many: 'manyToMany',
+  },
+};
 
 
 class Builder {
@@ -126,13 +137,14 @@ class Builder {
       let attributeTypes = attributes[typeName];
       let type = this._getType(typeName);
 
+      // Create a field definition for each attribute.
       Object.keys(attributeTypes).forEach(attrName => {
         let attrType = attributeTypes[attrName];
         if (!(attrType instanceof Scalar)) {
           throw new Error(`Expected scalar for ${typeName}.${attrName}`);
         }
         type._fieldDefs[attrName] = {
-          kind: 'attribute',
+          kind: 'scalar',
           from: type,
           name: attrName,
           type: attrType,
@@ -142,23 +154,22 @@ class Builder {
     });
 
     // Decorate types with relationships.
-    let addRelation = (fromType, cardinality, name, toType) => {
+    let addRelation = (fromType, fromCard, toCard, name, toType) => {
       if (name in fromType._fieldDefs) {
         throw new Error(`Relation redefines field: ${fromType}.${name}`);
       }
       fromType._fieldDefs[name] = {
-        kind: 'relation',
+        kind: relationKinds[fromCard][toCard],
         from: fromType,
         name,
         type: toType,
-        cardinality,
       };
     };
     relationships.forEach(([left, right]) => {
       let [typeL, cardL, nameL] = left;
       let [typeR, cardR, nameR] = right;
-      addRelation(typeL, cardL, nameL, typeR);
-      addRelation(typeR, cardR, nameR, typeL);
+      addRelation(typeL, cardL, cardR, nameL, typeR);
+      addRelation(typeR, cardR, cardL, nameR, typeL);
     });
 
     // Build field set indexes recursively bottom-up.
