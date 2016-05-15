@@ -17,10 +17,10 @@ b.scalar('Bool', (x) => {
   return x;
 });
 
-let Email = b.Text;
-let SaltedHash = b.Text;
-let Image = b.Text;
-let Language = b.Text;
+let Email = t.Text;
+let SaltedHash = t.Text;
+let Image = t.Text;
+let Language = t.Text;
 
 b.trait('Profile');
 b.trait('Followable');
@@ -33,13 +33,14 @@ b.trait('Network', t.Content);
 b.trait('Series', t.Content);
 b.trait('Episode', t.Content);
 
-b.build({
+b.finalize({
+  //TODO: Resource comparators for default ordering.
   attributes: {
 
     Profile: {
       name: t.Text,
       about: t.Text,
-      image: t.Image,
+      image: Image,
     },
 
     User: {
@@ -54,6 +55,7 @@ b.build({
 
   },
   relationships: [
+    //TODO: Relationships comparators.
     [
       [t.User, 'many', 'following'],
       [t.Followable, 'many', 'followers'],
@@ -70,5 +72,8 @@ b.build({
 });
 
 
+// Now, `t` is all good to go!
+
+
 let {inspect} = require('util');
-console.log(inspect(t, {depth: 3}));
+console.log(inspect(t, {depth: 5}));
