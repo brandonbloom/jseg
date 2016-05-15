@@ -1,68 +1,74 @@
 let schema = require('./schema');
 
-
 let b = new schema.Builder();
+let t = b.types;
 
-let Text = b.scalar('Text', (x) => {
+b.scalar('Text', (x) => {
   if (typeof x !== 'string') {
     throw new Error('Expected string');
   }
   return x;
 });
 
-let Bool = b.scalar('Bool', (x) => {
+b.scalar('Bool', (x) => {
   if (typeof x !== 'boolean') {
     throw new Error('Expected boolean');
   }
   return x;
 });
 
-let Email = Text;
-let SaltedHash = Text;
-let Image = Text;
+let Email = b.Text;
+let SaltedHash = b.Text;
+let Image = b.Text;
+let Language = b.Text;
 
+b.trait('Profile');
+b.trait('Followable');
+b.entity('User', t.Profile, t.Followable);
+b.trait('Likable');
+b.entity('Session');
+b.entity('Category', t.Profile);
+b.trait('Content', t.Profile);
+b.trait('Network', t.Content);
+b.trait('Series', t.Content);
+b.trait('Episode', t.Content);
 
-let Profile = b.trait('Profile');
+b.build({
+  attributes: {
 
-Profile.attribute('name', Text);
-Profile.attribute('about', Text);
-Profile.attribute('image', Image);
+    Profile: {
+      name: t.Text,
+      about: t.Text,
+      image: t.Image,
+    },
 
-let User = b.entity('User');
+    User: {
+      email: Email,
+      password: SaltedHash,
+      admin: t.Bool,
+    },
 
-User.include(Profile);
-User.attribute('email', Email);
-User.attribute('password', SaltedHash)
-User.attribute('admin', Bool);
+    Content: {
+      explicit: t.Bool,
+    },
 
-let Followable = b.trait('Followable');
-let Likable = b.trait('Likable');
-
-b.relate(User, 'many', 'following',
-         Followable, 'many', 'followers');
-
-b.relate(User, 'many', 'likes',
-         Likable, 'many', 'likers');
-
-let Session = b.entity('Session');
-
-let Content = b.trait('Content');
-
-Content.include(Profile);
-
-let Category = b.entity('Category');
-
-b.relate(Content, 'many', 'categories',
-         Category, 'many', 'content');
-
-let Language = Text;
-Content.attribute('language', Language);
-Content.attribute('explicit', Bool);
-
-let Network = b.entity('Network');
-
-Network.include(Content);
+  },
+  relationships: [
+    [
+      [t.User, 'many', 'following'],
+      [t.Followable, 'many', 'followers'],
+    ],
+    [
+      [t.User, 'many', 'likes'],
+      [t.Likable, 'many', 'likers'],
+    ],
+    [
+      [t.Content, 'many', 'categories'],
+      [t.Category, 'many', 'content'],
+    ],
+  ],
+});
 
 
 let {inspect} = require('util');
-console.log(inspect(b.build(), {depth: 3}));
+console.log(inspect(t, {depth: 3}));

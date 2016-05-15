@@ -1,17 +1,5 @@
 
 
-
-
-// schema: entities have IDs
-// Resource = Entity | Perspective | Extension
-// Entity = {Name, FieldSet}; FieldSet must include Id
-// Trait = {Name, FieldSet}
-// Field = Attribute | Relation
-// Relation = {from: Port}
-//             ToType
-
-
-
 class Type {
 
   constructor(name) {
@@ -35,10 +23,25 @@ class Scalar extends Type {
 
 class Composite extends Type {
 
-  constructor(name) {
+  constructor(name, bases) {
+
     super(name);
+
     this._defines = {};
-    this._includes = {};
+    this._bases = bases;
+
+    // Compute map of all implemented type names to type objects.
+    this._supers = {};
+    let include = (type) => {
+      console.log('include: ' + type._name);
+      if (type._name in this._supers) {
+        throw new Error('Duplicate super ' + type._name + ' in ' + name);
+      }
+      this._supers[type._name] = type;
+      type._bases.forEach(include);
+    };
+    include(this);
+
   }
 
 }
@@ -46,91 +49,37 @@ class Composite extends Type {
 // An entities is a composite type with a unique ID.
 class Entity extends Composite {
 
-  constructor(name) {
-    super(name);
+  constructor(name, bases) {
+    super(name, bases);
   }
 
 }
 
 // A resource is a perspective of an entity.
 // An entity itself is it's own public perspective resource.
-class Resource extends Composite {
-
-  constructor(name) {
-    super(name);
-  }
-
-}
+//XXX class Resource extends Composite
 
 // A trait is a named set of fields.
 class Trait extends Composite {
 
-  constructor(name) {
-    super(name);
+  constructor(name, bases) {
+    super(name, bases);
   }
 
 }
-
-
-class CompositeBuilder {
-
-  constructor(type) {
-    this._composite = type;
-  }
-
-  attribute(name, typeable) {
-    if (typeof name !== 'string') {
-      throw new Error('Expected name to be string');
-    }
-    let type = toType(typeable);
-    let defs = this._composite._defines;
-    if (name in defs) {
-      throw new Error('Redefinition of field: ' +
-          this._composite.name() + '.' + name);
-    }
-    defs[name] = {kind: 'attribute', type};
-  }
-
-  include(traitable) { //TODO: Differentiate include from extend?
-    let trait = traitable._composite;
-    if (!(trait instanceof Trait)) {
-      throw new Error('Expected trait');
-    }
-    this._checkIncludes(this, {});
-    this._composite._includes[trait._name] = trait;
-  }
-
-  _checkIncludes(composite, visited) {
-    if (composite._name in this._composite._includes) {
-      throw new Error('Duplicate include of ' + composite._name);
-    }
-    //XXX check for duplicates or cycles recursively.
-  }
-
-}
-
-let toType = (x) => {
-  if (x instanceof Type) {
-    return x;
-  }
-  if (x instanceof TypeBuilder) {
-    return x._type;
-  }
-  throw new Error('expected typeable');
-};
 
 
 class Builder {
 
   constructor() {
-    this._types = {};
+    this.types = {};
   }
 
   _type(type) {
-    if (type._name in this._types) {
+    if (type._name in this.types) {
       throw new Error('Redefinition of type: ' + type._name)
     }
-    this._types[type._name] = type;
+    this.types[type._name] = type;
     return type;
   }
 
@@ -138,31 +87,26 @@ class Builder {
     return this._type(new Scalar(name, validate));
   }
 
-  _composite(type) {
-    this._type(type);
-    return new CompositeBuilder(type);
+  entity(name, ...bases) {
+    return this._type(new Entity(name, bases));
   }
 
-  entity(name) {
-    return this._composite(new Entity(name));
+  resource(name, ...bases) {
+    return this._type(new Resource(name, bases));
   }
 
-  resource(name) {
-    return this._composite(new Resource(name));
+  trait(name, ...bases) {
+    return this._type(new Trait(name, bases));
   }
 
-  trait(name) {
-    return this._composite(new Trait(name));
-  }
+  build({attributes, relationships}) {
 
-  relate(leftType, leftCard, leftField,
-         rightTyp, rightCard, rightField) {
-  }
-
-  build() {
     //XXX error if shadowing inherited names.
     //XXX error if the same trait is inherited twice.
-    return this; //XXX generate a schema object.
+
+    // Prevent additional operations.
+    this.types = null;
+
   }
 
 }
