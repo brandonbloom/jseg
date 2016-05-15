@@ -36,7 +36,12 @@ class Composite extends Type {
         throw new Error('Duplicate super ' + type._name + ' in ' + name);
       }
       this._supers[type._name] = type;
-      type._bases.forEach(include);
+      type._bases.forEach(base => {
+        if (!(base instanceof Trait)) {
+          throw new Error(`${name} extends non-Trait: ${type._name}`);
+        }
+        include(base);
+      });
     };
     include(this);
 
