@@ -124,11 +124,11 @@ let coerceType = (schema, x) => {
 };
 
 
-class Builder {
+class SchemaBuilder {
 
   constructor() {
 
-    this.types = {};
+    this._types = {};
 
     // Define standard types.
 
@@ -143,32 +143,32 @@ class Builder {
     this.scalar('Bool', typeofValidator('boolean'));
     this.scalar('Num', typeofValidator('number'));
 
-    this.scalar('Type', (x) => coerceType(this.types, x));
+    this.scalar('Type', (x) => coerceType(this._types, x));
 
   }
 
   _type(type) {
-    if (type._name in this.types) {
+    if (type._name in this._types) {
       throw new Error('Redefinition of type: ' + type._name)
     }
-    this.types[type._name] = type;
+    this._types[type._name] = type;
     return type;
   }
 
   scalar(name, validate) {
-    return this._type(new Scalar(this.types, name, validate));
+    return this._type(new Scalar(this._types, name, validate));
   }
 
   entity(name, ...bases) {
-    return this._type(new Entity(this.types, name, bases));
+    return this._type(new Entity(this._types, name, bases));
   }
 
   trait(name, ...bases) {
-    return this._type(new Trait(this.types, name, bases));
+    return this._type(new Trait(this._types, name, bases));
   }
 
   _getType(name) {
-    let type = this.types[name];
+    let type = this._types[name];
     if (!type) {
       throw new Error('Unknown type: ' + name);
     }
@@ -201,8 +201,8 @@ class Builder {
     });
 
     // Add special attributes to all entities.
-    Object.keys(this.types).forEach(typeName => {
-      let type = this.types[typeName];
+    Object.keys(this._types).forEach(typeName => {
+      let type = this._types[typeName];
       if (!(type instanceof Entity)) {
         return;
       }
@@ -212,19 +212,18 @@ class Builder {
           cardinality: 'one',
           from: type,
           name: attrName,
-          type: this.types.Text,
+          type: this._types.Text,
           reverse: null,
         };
       });
       type._fieldDefs['type'] = {
-          kind: 'scalar',
-          cardinality: 'one',
-          from: type,
-          name: 'type',
-          type: this.types.Type,
-          reverse: null,
-        };
-      });
+        kind: 'scalar',
+        cardinality: 'one',
+        from: type,
+        name: 'type',
+        type: this._types.Type,
+        reverse: null,
+      };
     });
 
     // Decorate types with relationships.
@@ -280,16 +279,23 @@ class Builder {
     };
 
     // Run field indexing on all types.
-    Object.keys(this.types).forEach(typeName => {
-      let type = this.types[typeName];
+    Object.keys(this._types).forEach(typeName => {
+      let type = this._types[typeName];
       indexFields(type);
     });
 
     // Prevent additional operations.
-    this.types = null;
+    this._types = null;
 
   }
 
 }
 
-module.exports = {toType, Type, Scalar, Composite, Trait, Entity, Builder};
+let newSchema = () => {
+  let b = new SchemaBuilder();
+  return [b, b._types];
+};
+
+module.exports = {
+  coerceType, Type, Scalar, Composite, Trait, Entity, newSchema,
+};

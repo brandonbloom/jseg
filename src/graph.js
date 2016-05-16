@@ -1,21 +1,28 @@
 let s = require('./schema');
 
 
-let validate = (fieldName, f, x) => {
-  try {
-    return f(x);
-  } catch (e) {
-    console.error('Error validating ' + fieldName + ': ' + e);
-    return undefined;
-  }
-};
-
 
 class Graph {
 
-  constructor(schema) {
+  constructor(schema, options) {
     this._schema = schema;
     this._objs = {};
+    this._options = Object.assign({
+      log: console.error,
+    }, options);
+  }
+
+  _log(...args) {
+    this._options.log(...args);
+  }
+
+  _validate(fieldName, f, x) {
+    try {
+      return f(x);
+    } catch (e) {
+      this._log('Error validating ' + fieldName + ': ' + e);
+      return undefined;
+    }
   }
 
   put(entity) {
@@ -26,7 +33,7 @@ class Graph {
   _put(entity) {
 
     if (typeof entity !== 'object') {
-      console.log('expected entity object:', entity);
+      this._log('expected entity object:', entity);
       return undefined;
     }
 
@@ -36,7 +43,7 @@ class Graph {
 
     let {lid} = entity;
     if (!lid) {
-      console.error('missing lid:', entity);
+      this._log('missing lid:', entity);
       return undefined;
     }
 
@@ -47,20 +54,19 @@ class Graph {
       if (entity.type) {
         let type = this._coerceType(obj.type);
         if (type !== obj.type) {
-          console.error('put type ', type,
-                        'does not match existing: ', obj.type);
+          this._log('put type ', type, 'does not match existing: ', obj.type);
           return obj;
         }
       }
     } else {
       // Create a new typed entity object.
       if (!entity.type) {
-        console.error('expected type for new entity: ', entity);
+        this._log('expected type for new entity: ', entity);
         return undefined;
       }
       let type = s.coerceType(this._schema, entity.type);
       if (!(type instanceof s.Entity)) {
-        console.error('not an entity type: ', type);
+        this._log('not an entity type: ', type);
         return undefined;
       }
       obj = {lid, type};
@@ -69,21 +75,27 @@ class Graph {
 
     // Assert all mutable fields.
     Object.keys(entity).forEach(fieldName => {
-      if (!(fieldName in {lid: true, type: true})) {
-        let field = type._allFields[fieldName];
-        this._assert(obj, field, entity[fieldName]);
+      if (fieldName in {lid: true, type: true}) {
+        return;
       }
+      let field = obj.type._allFields[fieldName];
+      if (!field) {
+        this._log('Unknown field ', fieldName, ' on ', obj.type);
+        return;
+      }
+      this._assert(obj, field, entity[fieldName]);
     });
 
     return obj;
 
   }
 
-  _get(entity) {
+  get(entity) {
+    //XXX
   }
 
   _coerceType(x) {
-    return validate('type', s.coerceType, x);
+    return this._validate('type', s.coerceType, x);
   }
 
   _assert(obj, field, value) {
@@ -92,7 +104,7 @@ class Graph {
 
     if (kind === 'scalar') {
 
-      let validated = validate(field._name, type._validate, value);
+      let validated = this._validate(field._name, type._validate, value);
       if (validated === null) {
         delete obj[field._name];
       } else if (typeof validated !== 'undefined') {
@@ -145,7 +157,7 @@ class Graph {
           */
 
         default:
-          console.error('Unexpected field kind: ', kind);
+          this._log('Unexpected field kind: ', kind);
           return;
 
       }
