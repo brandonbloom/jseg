@@ -96,6 +96,19 @@ let relationKinds = {
   },
 };
 
+let reserved = {
+  lid: true,
+  gid: true,
+  type: true,
+};
+
+let ensureUnreserved = (typeName, fieldName) => {
+  if (reserved[fieldName]) {
+    throw new Error('Cannot add field with reserved name "' +
+        fieldName + '" to ' + typeName);
+  }
+};
+
 
 class Builder {
 
@@ -153,8 +166,8 @@ class Builder {
       let attributeTypes = attributes[typeName];
       let type = this._getType(typeName);
 
-      // Create a field definition for each attribute.
       Object.keys(attributeTypes).forEach(attrName => {
+        ensureUnreserved(attrName);
         let attrType = attributeTypes[attrName];
         if (!(attrType instanceof Scalar)) {
           throw new Error(`Expected scalar for ${typeName}.${attrName}`);
@@ -171,8 +184,27 @@ class Builder {
 
     });
 
+    // Add special ID attributes to all entities.
+    Object.keys(this.types).forEach(typeName => {
+      let type = this.types[typeName];
+      if (!(type instanceof Entity)) {
+        return;
+      }
+      ['lid', 'gid'].forEach(attrName => {
+        type._fieldDefs[attrName] = {
+          kind: 'scalar',
+          cardinality: 'one',
+          from: type,
+          name: attrName,
+          type: this.types.Text,
+          reverse: null,
+        };
+      });
+    });
+
     // Decorate types with relationships.
     let addRelation = (fromType, fromCard, toCard, name, toType) => {
+      ensureUnreserved(name);
       if (name in fromType._fieldDefs) {
         throw new Error(`Relation redefines field: ${fromType}.${name}`);
       }
