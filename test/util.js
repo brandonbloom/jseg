@@ -10,7 +10,7 @@ let classify = (x) => {
     return 'set';
   }
   if (typeof x === 'object') {
-    return 'composite';
+    return 'entity';
   }
   return 'scalar';
 };
@@ -50,7 +50,7 @@ let assertEquiv = (x, y) => {
         }
         break;
 
-      case 'composite':
+      case 'entity':
         let ks = Object.keys(x).sort();
         path.push('*')
         rec(ks, Object.keys(y).sort());
