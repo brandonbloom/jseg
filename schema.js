@@ -2,7 +2,8 @@
 
 class Type {
 
-  constructor(name) {
+  constructor(schema, name) {
+    this._schema = schema;
     this._name = name;
   }
 
@@ -14,18 +15,19 @@ class Type {
 
 class Scalar extends Type {
 
-  constructor(name, validate) {
-    super(name);
+  constructor(schema, name, validate) {
+    super(schema, name);
     this._validate = validate;
   }
 
 }
 
+// A composite type has a named set of fields.
 class Composite extends Type {
 
-  constructor(name, bases) {
+  constructor(schema, name, bases) {
 
-    super(name);
+    super(schema, name);
 
     this._bases = bases;
 
@@ -61,24 +63,20 @@ class Composite extends Type {
 
 }
 
-// An entities is a composite type with a unique ID.
+// An entity is a concrete composite type with unique IDs.
 class Entity extends Composite {
 
-  constructor(name, bases) {
-    super(name, bases);
+  constructor(schema, name, bases) {
+    super(schema, name, bases);
   }
 
 }
 
-// A resource is a perspective of an entity.
-// An entity itself is it's own public perspective resource.
-//XXX class Resource extends Composite
-
-// A trait is a named set of fields.
+// A trait is an abstract composite type.
 class Trait extends Composite {
 
-  constructor(name, bases) {
-    super(name, bases);
+  constructor(schema, name, bases) {
+    super(schema, name, bases);
   }
 
 }
@@ -111,15 +109,15 @@ class Builder {
   }
 
   scalar(name, validate) {
-    return this._type(new Scalar(name, validate));
+    return this._type(new Scalar(this.types, name, validate));
   }
 
   entity(name, ...bases) {
-    return this._type(new Entity(name, bases));
+    return this._type(new Entity(this.types, name, bases));
   }
 
   trait(name, ...bases) {
-    return this._type(new Trait(name, bases));
+    return this._type(new Trait(this.types, name, bases));
   }
 
   _getType(name) {
