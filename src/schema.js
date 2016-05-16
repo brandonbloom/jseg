@@ -35,12 +35,12 @@ class Composite extends Type {
     this._supers = {};
     let include = (type) => {
       if (type._name in this._supers) {
-        throw new Error('Duplicate super ' + type._name + ' in ' + name);
+        throw Error('Duplicate super ' + type._name + ' in ' + name);
       }
       this._supers[type._name] = type;
       type._bases.forEach(base => {
         if (!(base instanceof Trait)) {
-          throw new Error(`${name} extends non-Trait: ${type._name}`);
+          throw Error(`${name} extends non-Trait: ${type._name}`);
         }
         include(base);
       });
@@ -104,7 +104,7 @@ let reserved = {
 
 let ensureUnreserved = (typeName, fieldName) => {
   if (reserved[fieldName]) {
-    throw new Error('Cannot add field with reserved name "' +
+    throw Error('Cannot add field with reserved name "' +
         fieldName + '" to ' + typeName);
   }
 };
@@ -112,13 +112,13 @@ let ensureUnreserved = (typeName, fieldName) => {
 let coerceType = (schema, x) => {
   if (x instanceof Type) {
     if (x._schema !== schema) {
-      throw new Error('Cannot use Type from another schema');
+      throw Error('Cannot use Type from another schema');
     }
     return x;
   }
   let type = schema[x];
   if (!type) {
-    throw new Error('Unknown type: ' + x);
+    throw Error('Unknown type: ' + x);
   }
   return type;
 };
@@ -134,7 +134,7 @@ class SchemaBuilder {
 
     let typeofValidator = (name) => (x) => {
       if (typeof x !== name) {
-        throw new Error('Expected ' + name);
+        throw Error('Expected ' + name);
       }
       return x;
     };
@@ -149,7 +149,7 @@ class SchemaBuilder {
 
   _type(type) {
     if (type._name in this._types) {
-      throw new Error('Redefinition of type: ' + type._name)
+      throw Error('Redefinition of type: ' + type._name)
     }
     this._types[type._name] = type;
     return type;
@@ -170,7 +170,7 @@ class SchemaBuilder {
   _getType(name) {
     let type = this._types[name];
     if (!type) {
-      throw new Error('Unknown type: ' + name);
+      throw Error('Unknown type: ' + name);
     }
     return type;
   }
@@ -186,7 +186,7 @@ class SchemaBuilder {
         ensureUnreserved(attrName);
         let attrType = attributeTypes[attrName];
         if (!(attrType instanceof Scalar)) {
-          throw new Error(`Expected scalar for ${typeName}.${attrName}`);
+          throw Error(`Expected scalar for ${typeName}.${attrName}`);
         }
         type._fieldDefs[attrName] = {
           kind: 'scalar',
@@ -230,7 +230,7 @@ class SchemaBuilder {
     let addRelation = (fromType, fromCard, toCard, name, toType) => {
       ensureUnreserved(name);
       if (name in fromType._fieldDefs) {
-        throw new Error(`Relation redefines field: ${fromType}.${name}`);
+        throw Error(`Relation redefines field: ${fromType}.${name}`);
       }
       let def = {
         kind: relationKinds[fromCard][toCard],
@@ -267,7 +267,7 @@ class SchemaBuilder {
           // Check for conflicts.
           let existing = type._allFields[fieldName];
           if (existing) {
-            throw new Error(`Field ${fieldName} conflicts between ` +
+            throw Error(`Field ${fieldName} conflicts between ` +
                 `${existing.from._name} and ${field.from._name}`)
           }
 

@@ -23,10 +23,10 @@ class TestGraph {
     this._messages = [];
     f();
     if (this._messages.length !== 1) {
-      throw new Error('Expected a message');
+      throw Error('Expected a message');
     }
     if (this._messages[0].indexOf(substr) === -1) {
-      throw new Error('Expected message containing ' +
+      throw Error('Expected message containing ' +
           JSON.stringify(substr) + ', but got: ' +
           JSON.stringify(this._messages[0]));
     }
