@@ -1,3 +1,5 @@
+let {inspect} = require('util');
+
 let {Type, Graph} = require('../src');
 
 let classify = (x) => {
@@ -73,7 +75,9 @@ class TestGraph {
     this._messages = null;
     this.g = new Graph(schema, {
       log: (...args) => {
-        let msg = [...args].join(' ');
+        let msg = [...args].map(x =>
+          typeof x === 'string' ? x : inspect(x)
+        ).join(' ');
         if (this._messages) {
           this._messages.push(msg);
         } else {
@@ -88,8 +92,9 @@ class TestGraph {
     assertEquiv(this.g.get(lid, options), expected);
   }
 
-  checkLookup(field, value, expected, options) {
-    assertEquiv(this.g.lookup(field, value, options), expected);
+  checkLookup(type, attribute, value, expected, options) {
+    options = Object.assign({depth: 0}, options);
+    assertEquiv(this.g.lookup(type, attribute, value, options), expected);
   }
 
   expectMessage(substr, f) {
@@ -109,6 +114,11 @@ class TestGraph {
 
   show(lid) {
     let entity = this.g.get(lid, {depth: 0, json: true});
+    console.log(JSON.stringify(entity, null, 2));
+  }
+
+  showLookup(type, attribute, value) {
+    let entity = this.g.lookup(type, attribute, value, {depth: 0, json: true});
     console.log(JSON.stringify(entity, null, 2));
   }
 

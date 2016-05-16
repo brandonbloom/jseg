@@ -6,11 +6,39 @@ class Graph {
 
 
   constructor(schema, options) {
+
     this._schema = schema;
-    this._objs = {};
+
     this._options = Object.assign({
       log: console.error,
     }, options);
+
+    // Construct indexes as map of defining type name -> field name -> obj.
+    this._indexes = {};
+    Object.keys(this._schema).forEach(typeName => {
+      let type = schema[typeName];
+
+      let indexes = {};
+      this._indexes[typeName] = indexes;
+
+      if (!(type instanceof s.Composite)) {
+        return;
+      }
+
+      Object.keys(type._fieldDefs).forEach(fieldName => {
+        let field = type._fieldDefs[fieldName];
+
+        // Only index Key fields.
+        if (field.type !== schema.Key) {
+          return;
+        }
+
+        let index = {};
+        indexes[fieldName] = index;
+
+      });
+    });
+
   }
 
   _log(...args) {
@@ -43,7 +71,7 @@ class Graph {
     }
 
     // Find or create mutable storage object.
-    let obj = this._objs[lid];
+    let obj = this._findByLid(lid);
     if (obj) {
       // Prevent transmutation of existing object.
       if (entity.type) {
@@ -60,15 +88,16 @@ class Graph {
         return undefined;
       }
       let type = s.coerceType(this._schema, entity.type);
-      if (!(type instanceof s.Entity)) {
+      if (!type._allFields['lid']) {
         this._log('not an entity type:', type);
         return undefined;
       }
+      // Pre-initialize special fields needed to establish relationships.
       obj = {lid, type};
-      this._objs[lid] = obj;
+      this._indexes['Entity']['lid'][lid] = obj;
     }
 
-    // Put all mutable fields.
+    // Put all non-special fields.
     Object.keys(entity).forEach(fieldName => {
       if (fieldName in {lid: true, type: true}) {
         return;
@@ -86,7 +115,7 @@ class Graph {
   }
 
   _coerceType(x) {
-    return this._validate('type', s.coerceType, x);
+    return this._validate('type', (t) => s.coerceType(this._schema, t), x);
   }
 
   _validate(fieldName, f, x) {
@@ -103,15 +132,28 @@ class Graph {
 
   _putField(obj, field, value) {
 
-    let {kind, name, type} = field;
+    let {kind, from, name, type} = field;
 
     if (kind === 'scalar') {
 
-      let validated = this._validate(name, type._marshal, value);
-      if (validated === null) {
+      let oldValue = obj[name];
+      let newValue = this._validate(name, type._marshal, value);
+      if (newValue === null) {
         delete obj[name];
-      } else if (typeof validated !== 'undefined') {
-        obj[name] = validated;
+      } else if (typeof newValue !== 'undefined') {
+        obj[name] = newValue;
+      } else {
+        return;
+      }
+
+      if (type === this._schema.Key) {
+        let index = this._indexes[from._name][name];
+        if (oldValue) {
+          delete index[oldValue];
+        }
+        if (newValue) {
+          index[newValue] = obj;
+        }
       }
 
     } else {
@@ -173,6 +215,36 @@ class Graph {
   // Query.
 
   get(lid, options) {
+    let obj = this._findByLid(lid);
+    return obj ? this._get(obj, options) : null;
+  }
+
+  lookup(type, attribute, value, options) {
+    type = this._coerceType(type);
+    if (!type) {
+      return null;
+    }
+    let keyField = type._allFields[attribute];
+    if (!keyField) {
+      this._log('Unknown key field: ' + type._name + '.' + attribute);
+      return null;
+    }
+    let obj = this._find(keyField, value);
+    return obj ? this._get(obj, options) : null;
+  }
+
+  _findByLid(lid) {
+    let {Entity} = this._schema;
+    let keyField = Entity._fieldDefs['lid'];
+    return this._find(keyField, lid);
+  }
+
+  _find(keyField, value) {
+    let {from, name} = keyField;
+    return this._indexes[from._name][name][value];
+  }
+
+  _get(root, options) {
 
     let {depth, json} = Object.assign({depth: 1}, options);
     depth = depth || -1;
@@ -211,8 +283,7 @@ class Graph {
       return entity;
     };
 
-    let obj = this._objs[lid];
-    return obj ? rec(obj) : null;
+    return rec(root);
 
   }
 
@@ -220,7 +291,7 @@ class Graph {
   // Deletion.
 
   destroy(lid) {
-    let obj = this._objs[lid];
+    let obj = this._findByLid(lid);
     if (!obj) {
       return;
     }
@@ -228,14 +299,16 @@ class Graph {
   }
 
   _destroy(obj) {
-    delete this._objs[obj.lid];
     for (var fieldName in obj) {
       let value = obj[fieldName];
-      let {kind, reverse} = obj.type._allFields[fieldName];
+      let {from, type, kind, reverse} = obj.type._allFields[fieldName];
       switch (kind) {
 
         case 'scalar':
-          //XXX if unique
+          if (type === this._schema.Key) {
+            let index = this._indexes[from._name][fieldName]
+            delete index[value];
+          }
           break;
 
         case 'oneToOne':
@@ -264,7 +337,7 @@ class Graph {
   }
 
   remove(fromLid, relationName, toLid) {
-    let from = this._objs[fromLid];
+    let from = this._findByLid(fromLid);
     if (!from) {
       return;
     }
@@ -273,7 +346,7 @@ class Graph {
       this._log('unknown relation: ' + relationName);
       return;
     }
-    let to = this._objs[toLid];
+    let to = this._findByLid(toLid);
     if (!to) {
       return;
     }

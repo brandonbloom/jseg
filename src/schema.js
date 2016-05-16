@@ -23,7 +23,6 @@ class Scalar extends Type {
 
 }
 
-// A composite type has a named set of fields.
 class Composite extends Type {
 
   constructor(schema, name, bases) {
@@ -40,8 +39,8 @@ class Composite extends Type {
       }
       this._supers[type._name] = type;
       type._bases.forEach(base => {
-        if (!(base instanceof Trait)) {
-          throw Error(`${name} extends non-Trait: ${type._name}`);
+        if (!(base instanceof Composite)) {
+          throw Error(`${name} extends non-Composite: ${type._name}`);
         }
         include(base);
       });
@@ -67,24 +66,6 @@ class Composite extends Type {
 
 }
 
-// An entity is a concrete composite type with unique IDs.
-class Entity extends Composite {
-
-  constructor(schema, name, bases) {
-    super(schema, name, bases);
-  }
-
-}
-
-// A trait is an abstract composite type.
-class Trait extends Composite {
-
-  constructor(schema, name, bases) {
-    super(schema, name, bases);
-  }
-
-}
-
 
 let relationKinds = {
   one: {
@@ -95,19 +76,6 @@ let relationKinds = {
     one: 'manyToOne',
     many: 'manyToMany',
   },
-};
-
-let reserved = {
-  lid: true,
-  gid: true,
-  type: true,
-};
-
-let ensureUnreserved = (typeName, fieldName) => {
-  if (reserved[fieldName]) {
-    throw Error('Cannot add field with reserved name "' +
-        fieldName + '" to ' + typeName);
-  }
 };
 
 let coerceType = (schema, x) => {
@@ -131,7 +99,19 @@ class SchemaBuilder {
 
     this._types = {};
 
-    // Define standard types.
+    // Define standard scalar types.
+
+    this.scalar('Key', {
+      marshal: (x) => {
+        if (typeof x === 'string') {
+          x = x.trim();
+          if (x !== '') {
+            return x;
+          }
+        }
+        throw Error('expected non-empty string');
+      },
+    });
 
     let primitive = (name, tag) => {
       this.scalar(name, {
@@ -158,6 +138,9 @@ class SchemaBuilder {
       unmarshal: (x) => x.toISOString(),
     });
 
+    // Declare the only special composite type.
+    this.trait('Entity');
+
   }
 
   _type(type) {
@@ -172,12 +155,13 @@ class SchemaBuilder {
     return this._type(new Scalar(this._types, name, options));
   }
 
-  entity(name, ...bases) {
-    return this._type(new Entity(this._types, name, bases));
+  trait(name, ...bases) {
+    return this._type(new Composite(this._types, name, bases));
   }
 
-  trait(name, ...bases) {
-    return this._type(new Trait(this._types, name, bases));
+  entity(name, ...bases) {
+    bases = [this._types.Entity].concat(bases);
+    return this._type(new Composite(this._types, name, bases));
   }
 
   _getType(name) {
@@ -190,16 +174,41 @@ class SchemaBuilder {
 
   finalize({attributes, relationships}) {
 
+    // Add special attributes to Entity.
+    let Entity = this._types.Entity;
+    ['lid', 'gid'].forEach(attrName => {
+      Entity._fieldDefs[attrName] = {
+        kind: 'scalar',
+        cardinality: 'one',
+        from: Entity,
+        name: attrName,
+        type: this._types.Key,
+        reverse: null,
+      };
+    });
+    Entity._fieldDefs['type'] = {
+      kind: 'scalar',
+      cardinality: 'one',
+      from: Entity,
+      name: 'type',
+      type: this._types.Type,
+      reverse: null,
+    };
+
     // Decorate types with attributes.
     Object.keys(attributes).forEach(typeName => {
       let attributeTypes = attributes[typeName];
       let type = this._getType(typeName);
 
       Object.keys(attributeTypes).forEach(attrName => {
-        ensureUnreserved(attrName);
         let attrType = attributeTypes[attrName];
         if (!(attrType instanceof Scalar)) {
           throw Error(`Expected scalar for ${typeName}.${attrName}`);
+        }
+        let existing = type._fieldDefs[attrName];
+        if (existing) {
+          throw Error(type._name + '.' + attrName +
+              ' conflicts with builtin field');
         }
         type._fieldDefs[attrName] = {
           kind: 'scalar',
@@ -213,35 +222,8 @@ class SchemaBuilder {
 
     });
 
-    // Add special attributes to all entities.
-    Object.keys(this._types).forEach(typeName => {
-      let type = this._types[typeName];
-      if (!(type instanceof Entity)) {
-        return;
-      }
-      ['lid', 'gid'].forEach(attrName => {
-        type._fieldDefs[attrName] = {
-          kind: 'scalar',
-          cardinality: 'one',
-          from: type,
-          name: attrName,
-          type: this._types.Text,
-          reverse: null,
-        };
-      });
-      type._fieldDefs['type'] = {
-        kind: 'scalar',
-        cardinality: 'one',
-        from: type,
-        name: 'type',
-        type: this._types.Type,
-        reverse: null,
-      };
-    });
-
     // Decorate types with relationships.
     let addRelation = (fromType, fromCard, toCard, name, toType) => {
-      ensureUnreserved(name);
       if (name in fromType._fieldDefs) {
         throw Error(`Relation redefines field: ${fromType}.${name}`);
       }
@@ -310,5 +292,5 @@ let newSchema = () => {
 };
 
 module.exports = {
-  coerceType, Type, Scalar, Composite, Trait, Entity, newSchema,
+  coerceType, Type, Scalar, Composite, newSchema,
 };
