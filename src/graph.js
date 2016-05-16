@@ -4,6 +4,7 @@ let s = require('./schema');
 
 class Graph {
 
+
   constructor(schema, options) {
     this._schema = schema;
     this._objs = {};
@@ -16,14 +17,8 @@ class Graph {
     this._options.log(...args);
   }
 
-  _validate(fieldName, f, x) {
-    try {
-      return f(x);
-    } catch (e) {
-      this._log('Error validating ' + fieldName + ': ' + e);
-      return undefined;
-    }
-  }
+
+  // Insertion.
 
   put(entity) {
     //TODO: begin/commit.
@@ -54,19 +49,19 @@ class Graph {
       if (entity.type) {
         let type = this._coerceType(obj.type);
         if (type !== obj.type) {
-          this._log('put type ', type, 'does not match existing: ', obj.type);
+          this._log('put type', type, 'does not match existing:', obj.type);
           return obj;
         }
       }
     } else {
       // Create a new typed entity object.
       if (!entity.type) {
-        this._log('expected type for new entity: ', entity);
+        this._log('expected type for new entity:', entity);
         return undefined;
       }
       let type = s.coerceType(this._schema, entity.type);
       if (!(type instanceof s.Entity)) {
-        this._log('not an entity type: ', type);
+        this._log('not an entity type:', type);
         return undefined;
       }
       obj = {lid, type};
@@ -80,7 +75,7 @@ class Graph {
       }
       let field = obj.type._allFields[fieldName];
       if (!field) {
-        this._log('Unknown field ', fieldName, ' on ', obj.type);
+        this._log('unknown field', fieldName, 'on', obj.type);
         return;
       }
       this._assert(obj, field, entity[fieldName]);
@@ -90,12 +85,20 @@ class Graph {
 
   }
 
-  get(entity) {
-    //XXX
-  }
-
   _coerceType(x) {
     return this._validate('type', s.coerceType, x);
+  }
+
+  _validate(fieldName, f, x) {
+    if (x === null) {
+      return null;
+    }
+    try {
+      return f(x);
+    } catch (e) {
+      this._log('Error validating ' + fieldName + ': ' + e);
+      return undefined;
+    }
   }
 
   _assert(obj, field, value) {
@@ -104,11 +107,11 @@ class Graph {
 
     if (kind === 'scalar') {
 
-      let validated = this._validate(field._name, type._validate, value);
+      let validated = this._validate(name, type._validate, value);
       if (validated === null) {
-        delete obj[field._name];
+        delete obj[name];
       } else if (typeof validated !== 'undefined') {
-        obj[field._name] = validated;
+        obj[name] = validated;
       }
 
     } else {
@@ -157,13 +160,58 @@ class Graph {
           */
 
         default:
-          this._log('Unexpected field kind: ', kind);
+          this._log('Unexpected field kind:', kind);
           return;
 
       }
 
     }
   }
+
+
+  // Query.
+
+  get(lid, options) {
+
+    let {depth} = Object.assign({depth: 1}, options);
+    depth = depth || -1;
+    let inside = {};
+
+    let rec = (lid) => {
+      if (depth === 0 || inside[lid]) {
+        return {lid};
+      }
+      inside[lid] = true;
+      depth--;
+
+      let obj = this._objs[lid];
+      let getField = (fieldName) => {
+        let value = obj[fieldName]
+        let {kind, cardinality} = obj.type._allFields[fieldName];
+        if (kind === 'scalar') {
+          return value;
+        }
+        if (cardinality === 'one') {
+          return this._get(value)
+        }
+        return Object.keys(value).map((lid) => this._get(lid));
+      };
+
+      let entity = {};
+      for (let fieldName in obj) {
+        entity[fieldName] = getField(fieldName);
+      }
+      inside[lid] = false;
+      depth++;
+      return entity;
+    };
+
+    return rec(lid);
+
+  }
+
+
+  // Deletion.
 
   destroy(lid) {
     //XXX
@@ -188,8 +236,6 @@ class Graph {
     }
   }
 
-  _get(type, lid) {
-  }
 
 }
 

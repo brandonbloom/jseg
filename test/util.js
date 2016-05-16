@@ -2,33 +2,35 @@ let assert = require('assert');
 
 let Graph = require('../src/graph');
 
-let assertEquiv = (actual, expected) => {
-  //XXX This assumes the children collection come back in insertion order.
-  //TODO: Treat arrays as sets.
-  assert.deepStrictEqual(actual, expected);
-};
-
 class TestGraph {
 
   constructor(schema) {
-    this._messages = [];
+    this._messages = null;
     this.g = new Graph(schema, {
       log: (...args) => this._messages.push([...args].join(' ')),
     });
   }
 
   check(lid, expected, options) {
-    assertEquiv(this.g.get(lid, options), expected);
+    assert.deepStrictEqual(this.g.get(lid, options), expected);
   }
 
   checkLookup(field, value, expected, options) {
-    assertEquiv(this.g.lookup(field, value, options), expected);
+    assert.deepStrictEqual(this.g.lookup(field, value, options), expected);
   }
 
-  messages() {
-    let ret = this._messages;
+  expectMessage(substr, f) {
     this._messages = [];
-    return ret;
+    f();
+    if (this._messages.length !== 1) {
+      throw new Error('Expected a message');
+    }
+    if (this._messages[0].indexOf(substr) === -1) {
+      throw new Error('Expected message containing ' +
+          JSON.stringify(substr) + ', but got: ' +
+          JSON.stringify(this._messages[0]));
+    }
+    this._messages = null;
   }
 
 }

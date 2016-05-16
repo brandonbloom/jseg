@@ -21,16 +21,18 @@ let s = b.finalize({
 
 let tg = new TestGraph(t);
 
-tg.g.put({
-  type: 'Thing',
-  lid: 'x',
-  field: 'y',
-  unknown: 'z',
-  deleteme: 'ok',
+tg.expectMessage('unknown field mystery', () => {
+  tg.g.put({
+    type: t.Thing,
+    lid: 'x',
+    field: 'y',
+    mystery: 'z',
+    deleteme: 'ok',
+  });
 });
 
 tg.check('x', {
-  type: 'Thing',
+  type: t.Thing,
   lid: 'x',
   field: 'y',
   deleteme: 'ok',
@@ -42,9 +44,7 @@ tg.g.put({
 });
 
 tg.check('x', {
-  type: 'Thing',
   lid: 'x',
+  type: t.Thing,
   field: 'y',
 });
-
-assert.equals(tg.messages(), []);
