@@ -292,4 +292,4 @@ class Builder {
 
 }
 
-module.exports = {Builder};
+module.exports = {toType, Type, Scalar, Composite, Trait, Entity, Builder};
