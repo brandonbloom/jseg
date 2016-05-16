@@ -7,7 +7,14 @@ class TestGraph {
   constructor(schema) {
     this._messages = null;
     this.g = new Graph(schema, {
-      log: (...args) => this._messages.push([...args].join(' ')),
+      log: (...args) => {
+        let msg = [...args].join(' ');
+        if (this._messages) {
+          this._messages.push(msg);
+        } else {
+          throw Error('Unexpected message: ' + msg);
+        }
+      }
     });
   }
 
