@@ -48,10 +48,13 @@ class Composite extends Type {
     include(this);
 
     // Maps field names defined directly on this type to definition structures.
-    // Definition structures have form {kind, from, name, type}.
+    // Definition structures have form:
+    // {kind, from, cardinality, name, type, reverse}.
     //   from: Type on which this field was defined.
+    //   cardinality: 'one' or 'many'. Always 'one' for scalars.
     //   type: Attribute value's type.
     //   kind: One of 'scalar', 'oneToMany', 'manyToOne', or 'manyToMany'.
+    //   reverse: relationship's counter part on destination type.
     // Populated during type system finalization.
     this._fieldDefs = {};
 
@@ -143,9 +146,11 @@ class Builder {
         }
         type._fieldDefs[attrName] = {
           kind: 'scalar',
+          cardinality: 'one',
           from: type,
           name: attrName,
           type: attrType,
+          reverse: null,
         };
       });
 
@@ -156,18 +161,24 @@ class Builder {
       if (name in fromType._fieldDefs) {
         throw new Error(`Relation redefines field: ${fromType}.${name}`);
       }
-      fromType._fieldDefs[name] = {
+      let def = {
         kind: relationKinds[fromCard][toCard],
+        cardinality: fromCard,
         from: fromType,
         name,
         type: toType,
+        reverse: null,
       };
+      fromType._fieldDefs[name] = def;
+      return def;
     };
     relationships.forEach(([left, right]) => {
       let [typeL, cardL, nameL] = left;
       let [typeR, cardR, nameR] = right;
-      addRelation(typeL, cardL, cardR, nameL, typeR);
-      addRelation(typeR, cardR, cardL, nameR, typeL);
+      let defL = addRelation(typeL, cardL, cardR, nameL, typeR);
+      let defR = addRelation(typeR, cardR, cardL, nameR, typeL);
+      defL.reverse = defR;
+      defR.reverse = defL;
     });
 
     // Build field set indexes recursively bottom-up.
