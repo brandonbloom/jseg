@@ -6,12 +6,16 @@ let [b, t] = jseg.newSchema();
 
 b.entity('Thing');
 
-b.scalar('Rounded', Math.round);
-b.scalar('Even', (x) => {
-  if (x % 2 !== 0) {
-    throw Error('expected even number');
-  }
-  return x;
+b.scalar('Rounded', {
+  marshal: Math.round,
+});
+b.scalar('Even', {
+  marshal: (x) => {
+    if (x % 2 !== 0) {
+      throw Error('expected even number');
+    }
+    return x;
+  },
 });
 
 b.finalize({

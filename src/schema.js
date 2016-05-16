@@ -15,9 +15,10 @@ class Type {
 
 class Scalar extends Type {
 
-  constructor(schema, name, validate) {
+  constructor(schema, name, {marshal, unmarshal}) {
     super(schema, name);
-    this._validate = validate;
+    this._marshal = marshal || ((x) => x);
+    this._unmarshal = unmarshal || ((x) => x);
   }
 
 }
@@ -132,18 +133,30 @@ class SchemaBuilder {
 
     // Define standard types.
 
-    let typeofValidator = (name) => (x) => {
-      if (typeof x !== name) {
-        throw Error('Expected ' + name);
-      }
-      return x;
+    let primitive = (name, tag) => {
+      this.scalar(name, {
+        marshal: (x) => {
+          if (typeof x !== tag) {
+            throw Error('Expected ' + tag);
+          }
+          return x;
+        },
+      });
     };
 
-    this.scalar('Text', typeofValidator('string'));
-    this.scalar('Bool', typeofValidator('boolean'));
-    this.scalar('Num', typeofValidator('number'));
+    primitive('Text', 'string');
+    primitive('Bool', 'boolean');
+    primitive('Num', 'number');
 
-    this.scalar('Type', (x) => coerceType(this._types, x));
+    this.scalar('Type', {
+      marshal: (x) => coerceType(this._types, x),
+      unmarshal: (x) => x._name,
+    });
+
+    this.scalar('Time', {
+      marshal: (x) => new Date(x),
+      unmarshal: (x) => x.toISOString(),
+    });
 
   }
 
@@ -155,8 +168,8 @@ class SchemaBuilder {
     return type;
   }
 
-  scalar(name, validate) {
-    return this._type(new Scalar(this._types, name, validate));
+  scalar(name, options) {
+    return this._type(new Scalar(this._types, name, options));
   }
 
   entity(name, ...bases) {

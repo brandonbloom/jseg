@@ -107,7 +107,7 @@ class Graph {
 
     if (kind === 'scalar') {
 
-      let validated = this._validate(name, type._validate, value);
+      let validated = this._validate(name, type._marshal, value);
       if (validated === null) {
         delete obj[name];
       } else if (typeof validated !== 'undefined') {
@@ -174,40 +174,45 @@ class Graph {
 
   get(lid, options) {
 
-    let {depth} = Object.assign({depth: 1}, options);
+    let {depth, json} = Object.assign({depth: 1}, options);
     depth = depth || -1;
+    let unmarshal = (json ?
+      (f, x) => f(x) :
+      (_, x) => x
+    );
+
     let inside = {};
 
-    let rec = (lid) => {
-      if (depth === 0 || inside[lid]) {
-        return {lid};
+    let rec = (obj) => {
+      if (depth === 0 || inside[obj.lid]) {
+        return {lid: obj.lid};
       }
-      inside[lid] = true;
+      inside[obj.lid] = true;
       depth--;
 
-      let obj = this._objs[lid];
       let getField = (fieldName) => {
         let value = obj[fieldName]
-        let {kind, cardinality} = obj.type._allFields[fieldName];
+        let {type, kind, cardinality} = obj.type._allFields[fieldName];
         if (kind === 'scalar') {
-          return value;
+          return unmarshal(type._unmarshal, value);
         }
         if (cardinality === 'one') {
-          return this._get(value)
+          return rec(value)
         }
-        return Object.keys(value).map((lid) => this._get(lid));
+        return Object.keys(value).map(rec);
       };
 
       let entity = {};
       for (let fieldName in obj) {
         entity[fieldName] = getField(fieldName);
       }
-      inside[lid] = false;
+      inside[obj.lid] = false;
       depth++;
       return entity;
     };
 
-    return rec(lid);
+    let obj = this._objs[lid];
+    return obj ? rec(obj) : null;
 
   }
 
