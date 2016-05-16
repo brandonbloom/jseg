@@ -1,6 +1,71 @@
-let assert = require('assert');
+let {Type, Graph} = require('../src');
 
-let Graph = require('../src/graph');
+let classify = (x) => {
+  if (x === null || x instanceof Type) {
+    return 'scalar';
+  }
+  if (Array.isArray(x)) {
+    return 'set';
+  }
+  if (typeof x === 'object') {
+    return 'composite';
+  }
+  return 'scalar';
+};
+
+let assertEquiv = (x, y) => {
+
+  let path = [];
+
+  let fail = (msg) => {
+    throw Error('at .' + path.join('.') + ' ' + msg);
+  }
+
+  let rec = (x, y) => {
+
+    let cx = classify(x);
+    let cy = classify(y);
+    if (cx !== cy) {
+      fail(cx + ' !== ' + cy);
+    }
+
+    switch (cx) {
+
+      case 'scalar':
+        if (cx !== cy) {
+          fail('' + x + ' !== ' + y);
+        }
+        break;
+
+      case 'set':
+        if (x.length !== y.length) {
+          fail('length ' + x.length + ' !== ' + y.length);
+        }
+        for (let i = 0; i < x.length; i++) {
+          path.push(i);
+          rec(x[i], y[i]);
+          path.pop();
+        }
+        break;
+
+      case 'composite':
+        let ks = Object.keys(x).sort();
+        path.push('*')
+        rec(ks, Object.keys(y).sort());
+        path.pop();
+        ks.forEach(k => {
+          path.push(k);
+          rec(x[k], y[k]);
+          path.pop();
+        });
+        break;
+    }
+
+  };
+
+  rec(x, y);
+
+}
 
 class TestGraph {
 
@@ -19,18 +84,20 @@ class TestGraph {
   }
 
   check(lid, expected, options) {
-    assert.deepStrictEqual(this.g.get(lid, options), expected);
+    options = Object.assign({depth: 0}, options);
+    assertEquiv(this.g.get(lid, options), expected);
   }
 
   checkLookup(field, value, expected, options) {
-    assert.deepStrictEqual(this.g.lookup(field, value, options), expected);
+    assertEquiv(this.g.lookup(field, value, options), expected);
   }
 
   expectMessage(substr, f) {
     this._messages = [];
     f();
     if (this._messages.length !== 1) {
-      throw Error('Expected a message');
+      throw Error('Expected a 1 message, got ' + this._messages.length + ': ' +
+          JSON.stringify(this._messages, null, 2));
     }
     if (this._messages[0].indexOf(substr) === -1) {
       throw Error('Expected message containing ' +
@@ -38,6 +105,11 @@ class TestGraph {
           JSON.stringify(this._messages[0]));
     }
     this._messages = null;
+  }
+
+  show(lid) {
+    let entity = this.g.get(lid, {depth: 0, json: true});
+    console.log(JSON.stringify(entity, null, 2));
   }
 
 }

@@ -14,7 +14,7 @@ b.scalar('Even', (x) => {
   return x;
 });
 
-let s = b.finalize({
+b.finalize({
 
   attributes: {
     Thing: {

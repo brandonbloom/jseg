@@ -6,11 +6,11 @@ let [b, t] = jseg.newSchema();
 
 b.entity('Thing');
 
-let s = b.finalize({
+b.finalize({
 
   attributes: {
     Thing: {
-      field: t.Text,
+      text: t.Text,
       deleteme: t.Text,
     },
   },
@@ -25,7 +25,7 @@ tg.expectMessage('unknown field mystery', () => {
   tg.g.put({
     type: t.Thing,
     lid: 'x',
-    field: 'y',
+    text: 'y',
     mystery: 'z',
     deleteme: 'ok',
   });
@@ -34,7 +34,7 @@ tg.expectMessage('unknown field mystery', () => {
 tg.check('x', {
   type: t.Thing,
   lid: 'x',
-  field: 'y',
+  text: 'y',
   deleteme: 'ok',
 });
 
@@ -46,5 +46,5 @@ tg.g.put({
 tg.check('x', {
   lid: 'x',
   type: t.Thing,
-  field: 'y',
+  text: 'y',
 });
