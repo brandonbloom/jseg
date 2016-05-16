@@ -68,7 +68,7 @@ class Graph {
       this._objs[lid] = obj;
     }
 
-    // Assert all mutable fields.
+    // Put all mutable fields.
     Object.keys(entity).forEach(fieldName => {
       if (fieldName in {lid: true, type: true}) {
         return;
@@ -78,7 +78,7 @@ class Graph {
         this._log('unknown field', fieldName, 'on', obj.type);
         return;
       }
-      this._assert(obj, field, entity[fieldName]);
+      this._putField(obj, field, entity[fieldName]);
     });
 
     return obj;
@@ -96,12 +96,12 @@ class Graph {
     try {
       return f(x);
     } catch (e) {
-      this._log('Error validating ' + fieldName + ': ' + e);
+      this._log('error validating ' + fieldName + ': ' + e);
       return undefined;
     }
   }
 
-  _assert(obj, field, value) {
+  _putField(obj, field, value) {
 
     let {kind, name, type} = field;
 
@@ -134,6 +134,7 @@ class Graph {
           }
           if (other) {
             obj[name] = other;
+            other[reverse.name] = obj;
           } else {
             delete obj[name];
           }
