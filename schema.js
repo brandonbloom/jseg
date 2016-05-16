@@ -109,6 +109,20 @@ let ensureUnreserved = (typeName, fieldName) => {
   }
 };
 
+let coerceType = (schema, x) => {
+  if (x instanceof Type) {
+    if (x._schema !== schema) {
+      throw new Error('Cannot use Type from another schema');
+    }
+    return x;
+  }
+  let type = schema[x];
+  if (!type) {
+    throw new Error('Unknown type: ' + x);
+  }
+  return type;
+};
+
 
 class Builder {
 
@@ -128,6 +142,8 @@ class Builder {
     this.scalar('Text', typeofValidator('string'));
     this.scalar('Bool', typeofValidator('boolean'));
     this.scalar('Num', typeofValidator('number'));
+
+    this.scalar('Type', (x) => coerceType(this.types, x));
 
   }
 
@@ -184,7 +200,7 @@ class Builder {
 
     });
 
-    // Add special ID attributes to all entities.
+    // Add special attributes to all entities.
     Object.keys(this.types).forEach(typeName => {
       let type = this.types[typeName];
       if (!(type instanceof Entity)) {
@@ -197,6 +213,15 @@ class Builder {
           from: type,
           name: attrName,
           type: this.types.Text,
+          reverse: null,
+        };
+      });
+      type._fieldDefs['type'] = {
+          kind: 'scalar',
+          cardinality: 'one',
+          from: type,
+          name: 'type',
+          type: this.types.Type,
           reverse: null,
         };
       });
