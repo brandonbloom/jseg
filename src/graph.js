@@ -220,26 +220,101 @@ class Graph {
   // Deletion.
 
   destroy(lid) {
-    //XXX
+    let obj = this._objs[lid];
+    if (!obj) {
+      return;
+    }
+    this._destroy(obj);
   }
 
-  remove(fromId, relation, toId) {
-    let {kind, from, name, type: fieldType} = type._allFields[field];
+  _destroy(obj) {
+    delete this._objs[obj.lid];
+    for (var fieldName in obj) {
+      let value = obj[fieldName];
+      let {kind, reverse} = obj.type._allFields[fieldName];
+      switch (kind) {
+
+        case 'scalar':
+          //XXX if unique
+          break;
+
+        case 'oneToOne':
+          delete value[reverse.name];
+          //XXX if destroy cascading.
+          break;
+
+        case 'oneToMany':
+          throw Error('not implemented'); //XXX
+          break;
+
+        case 'manyToOne':
+          throw Error('not implemented'); //XXX
+          break;
+
+        case 'manyToMany':
+          throw Error('not implemented'); //XXX
+          break;
+
+        default:
+          this._log('Unexpected field kind: ' + kind);
+          break;
+
+      }
+    }
+  }
+
+  remove(fromLid, relationName, toLid) {
+    let from = this._objs[fromLid];
+    if (!from) {
+      return;
+    }
+    let relation = from.type._allFields[relationName];
+    if (!relation) {
+      this._log('unknown relation: ' + relationName);
+      return;
+    }
+    let to = this._objs[toLid];
+    if (!to) {
+      return;
+    }
+    return this._remove(from, relation, to);
+
+  }
+
+  _remove(from, relation, to) {
+    let {kind, name, reverse} = relation;
     switch (kind) {
 
       case 'scalar':
+        throw Error('not implemented'); //XXX
+        break;
+
+      case 'oneToOne':
+        let value = from[name];
+        if (value === to) {
+          delete from[name];
+          delete to[reverse.name];
+        }
         break;
 
       case 'oneToMany':
+        throw Error('not implemented'); //XXX
         break;
 
       case 'manyToOne':
+        throw Error('not implemented'); //XXX
         break;
 
       case 'manyToMany':
+        throw Error('not implemented'); //XXX
+        break;
+
+      default:
+        this._log('Unexpected field kind: ' + kind);
         break;
 
     }
+
   }
 
 
