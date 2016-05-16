@@ -11,6 +11,7 @@ b.finalize({
   attributes: {
     Thing: {
       key: t.Key,
+      constructor: t.Key,
     },
   },
 
@@ -39,7 +40,6 @@ tg.expectMessage('expected non-empty string', () => {
     key: 3,
   });
 });
-tg.showLookup(t.Thing, 'key', '3');
 tg.checkLookup(t.Thing, 'key', '3', null);
 
 tg.checkLookup(t.Thing, 'key', 'one', {
@@ -74,5 +74,7 @@ tg.checkLookup(t.Thing, 'key', 'four', {
   lid: 'q',
   key: 'four',
 });
+
+tg.checkLookup(t.Thing, 'constructor', '' + ({}).constructor, null);
 
 //XXX check destroy

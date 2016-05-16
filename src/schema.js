@@ -205,8 +205,7 @@ class SchemaBuilder {
         if (!(attrType instanceof Scalar)) {
           throw Error(`Expected scalar for ${typeName}.${attrName}`);
         }
-        let existing = type._fieldDefs[attrName];
-        if (existing) {
+        if (type._fieldDefs.hasOwnProperty(attrName)) {
           throw Error(type._name + '.' + attrName +
               ' conflicts with builtin field');
         }
@@ -260,8 +259,8 @@ class SchemaBuilder {
           let field = baseType._allFields[fieldName];
 
           // Check for conflicts.
-          let existing = type._allFields[fieldName];
-          if (existing) {
+          if (type._allFields.hasOwnProperty(fieldName)) {
+            let existing = type._allFields[fieldName];
             throw Error(`Field ${fieldName} conflicts between ` +
                 `${existing.from._name} and ${field.from._name}`)
           }

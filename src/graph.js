@@ -99,7 +99,7 @@ class Graph {
 
     // Put all non-special fields.
     Object.keys(entity).forEach(fieldName => {
-      if (fieldName in {lid: true, type: true}) {
+      if (({lid: true, type: true}).hasOwnProperty(fieldName)) {
         return;
       }
       let field = obj.type._allFields[fieldName];
@@ -241,7 +241,8 @@ class Graph {
 
   _find(keyField, value) {
     let {from, name} = keyField;
-    return this._indexes[from._name][name][value];
+    let index = this._indexes[from._name][name];
+    return (index.hasOwnProperty(value) ? index[value] : null);
   }
 
   _get(root, options) {
