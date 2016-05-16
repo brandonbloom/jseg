@@ -100,7 +100,22 @@ let relationKinds = {
 class Builder {
 
   constructor() {
+
     this.types = {};
+
+    // Define standard types.
+
+    let typeofValidator = (name) => (x) => {
+      if (typeof x !== name) {
+        throw new Error('Expected ' + name);
+      }
+      return x;
+    };
+
+    this.scalar('Text', typeofValidator('string'));
+    this.scalar('Bool', typeofValidator('boolean'));
+    this.scalar('Num', typeofValidator('number'));
+
   }
 
   _type(type) {

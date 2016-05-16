@@ -3,20 +3,6 @@ let schema = require('./schema');
 let b = new schema.Builder();
 let t = b.types;
 
-b.scalar('Text', (x) => {
-  if (typeof x !== 'string') {
-    throw new Error('Expected string');
-  }
-  return x;
-});
-
-b.scalar('Bool', (x) => {
-  if (typeof x !== 'boolean') {
-    throw new Error('Expected boolean');
-  }
-  return x;
-});
-
 let Email = t.Text;
 let SaltedHash = t.Text;
 let Image = t.Text;
