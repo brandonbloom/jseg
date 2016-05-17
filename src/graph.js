@@ -1,5 +1,5 @@
+let {getOwn, eachPair, StringMap} = require('./util');
 let s = require('./schema');
-
 
 
 class Graph {
@@ -15,8 +15,7 @@ class Graph {
 
     // Construct indexes as map of defining type name -> field name -> obj.
     this._indexes = {};
-    Object.keys(this._schema).forEach(typeName => {
-      let type = schema[typeName];
+    eachPair(this._schema, (typeName, type) => {
 
       let indexes = {};
       this._indexes[typeName] = indexes;
@@ -25,15 +24,14 @@ class Graph {
         return;
       }
 
-      Object.keys(type._fieldDefs).forEach(fieldName => {
-        let field = type._fieldDefs[fieldName];
+      eachPair(type._fieldDefs, (fieldName, field) => {
 
         // Only index Key fields.
         if (field.type !== schema.Key) {
           return;
         }
 
-        let index = {};
+        let index = new StringMap();
         indexes[fieldName] = index;
 
       });
@@ -88,26 +86,27 @@ class Graph {
         return undefined;
       }
       let type = s.coerceType(this._schema, entity.type);
-      if (!type._allFields['lid']) {
+      if (!type._field('lid')) {
         this._log('not an entity type:', type);
         return undefined;
       }
       // Pre-initialize special fields needed to establish relationships.
       obj = {lid, type};
-      this._indexes['Entity']['lid'][lid] = obj;
+      let index = this._indexes['Entity']['lid'];
+      index.put(lid, obj);
     }
 
     // Put all non-special fields.
-    Object.keys(entity).forEach(fieldName => {
-      if (({lid: true, type: true}).hasOwnProperty(fieldName)) {
+    eachPair(entity, (fieldName, value) => {
+      if (fieldName in {lid: true, type: true}) {
         return;
       }
-      let field = obj.type._allFields[fieldName];
+      let field = obj.type._field(fieldName);
       if (!field) {
         this._log('unknown field', fieldName, 'on', obj.type);
         return;
       }
-      this._putField(obj, field, entity[fieldName]);
+      this._putField(obj, field, value);
     });
 
     return obj;
@@ -136,7 +135,7 @@ class Graph {
 
     if (kind === 'scalar') {
 
-      let oldValue = obj[name];
+      let oldValue = getOwn(obj, name);
       let newValue = this._validate(name, type._marshal, value);
       if (newValue === null) {
         delete obj[name];
@@ -149,10 +148,10 @@ class Graph {
       if (type === this._schema.Key) {
         let index = this._indexes[from._name][name];
         if (oldValue) {
-          delete index[oldValue];
+          index.del(oldValue)
         }
         if (newValue) {
-          index[newValue] = obj;
+          index.put(newValue, obj);
         }
       }
 
@@ -162,12 +161,12 @@ class Graph {
 
       switch (kind) {
 
-        case 'oneToOne':
+        case 'oneToOne': {
           let other = this._put(value);
           if (typeof other === 'undefined') {
             return;
           }
-          let prior = obj[name];
+          let prior = getOwn(obj, name);
           if (prior === other) {
             return;
           }
@@ -181,6 +180,7 @@ class Graph {
             delete obj[name];
           }
           break;
+        }
 
           /*
         case 'oneToMany':
@@ -195,16 +195,19 @@ class Graph {
           this._retractHalf(obj, field, value);
           this._assertHalf(XXX);
           break;
+        }
 
         case 'manyToMany':
           this._assertHalf(obj, field, value);
           this._assertHalf(XXX);
           break;
+        }
           */
 
-        default:
-          this._log('Unexpected field kind:', kind);
+        default: {
+          this._log('cannot put field of unexpected kind:', kind);
           return;
+        }
 
       }
 
@@ -224,7 +227,7 @@ class Graph {
     if (!type) {
       return null;
     }
-    let keyField = type._allFields[attribute];
+    let keyField = type._field(attribute);
     if (!keyField) {
       this._log('Unknown key field: ' + type._name + '.' + attribute);
       return null;
@@ -242,7 +245,7 @@ class Graph {
   _find(keyField, value) {
     let {from, name} = keyField;
     let index = this._indexes[from._name][name];
-    return (index.hasOwnProperty(value) ? index[value] : null);
+    return index.get(value);
   }
 
   _get(root, options) {
@@ -265,7 +268,7 @@ class Graph {
 
       let getField = (fieldName) => {
         let value = obj[fieldName]
-        let {type, kind, cardinality} = obj.type._allFields[fieldName];
+        let {type, kind, cardinality} = obj.type._field(fieldName);
         if (kind === 'scalar') {
           return unmarshal(type._unmarshal, value);
         }
@@ -300,41 +303,46 @@ class Graph {
   }
 
   _destroy(obj) {
-    for (var fieldName in obj) {
-      let value = obj[fieldName];
-      let {from, type, kind, reverse} = obj.type._allFields[fieldName];
+    eachPair(obj, (fieldName, value) => {
+      let {from, type, kind, reverse} = obj.type._field(fieldName);
       switch (kind) {
 
-        case 'scalar':
+        case 'scalar': {
           if (type === this._schema.Key) {
             let index = this._indexes[from._name][fieldName]
-            delete index[value];
+            index.del(value);
           }
           break;
+        }
 
-        case 'oneToOne':
+        case 'oneToOne': {
           delete value[reverse.name];
           //XXX if destroy cascading.
           break;
+        }
 
-        case 'oneToMany':
+        case 'oneToMany': {
           throw Error('not implemented'); //XXX
           break;
+        }
 
-        case 'manyToOne':
+        case 'manyToOne': {
           throw Error('not implemented'); //XXX
           break;
+        }
 
-        case 'manyToMany':
+        case 'manyToMany': {
           throw Error('not implemented'); //XXX
           break;
+        }
 
-        default:
-          this._log('Unexpected field kind: ' + kind);
+        default: {
+          this._log('cannot destroy field of unexpected kind:', kind);
           break;
+        }
 
       }
-    }
+    });
   }
 
   remove(fromLid, relationName, toLid) {
@@ -342,7 +350,7 @@ class Graph {
     if (!from) {
       return;
     }
-    let relation = from.type._allFields[relationName];
+    let relation = from.type._field(relationName);
     if (!relation) {
       this._log('unknown relation: ' + relationName);
       return;
@@ -359,33 +367,39 @@ class Graph {
     let {kind, name, reverse} = relation;
     switch (kind) {
 
-      case 'scalar':
+      case 'scalar': {
         throw Error('not implemented'); //XXX
         break;
+      }
 
-      case 'oneToOne':
-        let value = from[name];
+      case 'oneToOne': {
+        let value = getOwn(from, name);
         if (value === to) {
           delete from[name];
           delete to[reverse.name];
         }
         break;
+      }
 
-      case 'oneToMany':
+      case 'oneToMany': {
         throw Error('not implemented'); //XXX
         break;
+      }
 
-      case 'manyToOne':
+      case 'manyToOne': {
         throw Error('not implemented'); //XXX
         break;
+      }
 
-      case 'manyToMany':
+      case 'manyToMany': {
         throw Error('not implemented'); //XXX
         break;
+      }
 
-      default:
-        this._log('Unexpected field kind: ' + kind);
+      default: {
+        this._log('cannot remove field of unexpected kind:', kind);
         break;
+      }
 
     }
 

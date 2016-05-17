@@ -12,6 +12,7 @@ b.finalize({
     Thing: {
       text: t.Text,
       deleteme: t.Text,
+      bool: t.Bool,
     },
   },
 
@@ -41,10 +42,12 @@ tg.check('x', {
 tg.g.put({
   lid: 'x',
   deleteme: null,
+  bool: false,
 });
 
 tg.check('x', {
   lid: 'x',
   type: t.Thing,
   text: 'y',
+  bool: false,
 });

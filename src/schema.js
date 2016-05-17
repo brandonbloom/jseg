@@ -1,8 +1,16 @@
+let {getOwn} = require('./util');
 
+
+let banInsanity = (s) => {
+  if (s === '__prototype__') {
+    throw Error('insanity.');
+  }
+}
 
 class Type {
 
   constructor(schema, name) {
+    banInsanity(name);
     this._schema = schema;
     this._name = name;
   }
@@ -34,7 +42,7 @@ class Composite extends Type {
     // Compute map of all implemented type names to type objects.
     this._supers = {};
     let include = (type) => {
-      if (type._name in this._supers) {
+      if (this._supers.hasOwnProperty(type._name)) {
         throw Error('Duplicate super ' + type._name + ' in ' + name);
       }
       this._supers[type._name] = type;
@@ -62,6 +70,16 @@ class Composite extends Type {
     // Initialized after all types have their _fieldDefs populated.
     this._allFields = null;
 
+  }
+
+  _defField(field) {
+    let {name} = field;
+    banInsanity(name);
+    this._fieldDefs[name] = field;
+  }
+
+  _field(name) {
+    return getOwn(this._allFields, name);
   }
 
 }
@@ -144,7 +162,7 @@ class SchemaBuilder {
   }
 
   _type(type) {
-    if (type._name in this._types) {
+    if (this._types.hasOwnProperty(type._name)) {
       throw Error('Redefinition of type: ' + type._name)
     }
     this._types[type._name] = type;
@@ -177,23 +195,23 @@ class SchemaBuilder {
     // Add special attributes to Entity.
     let Entity = this._types.Entity;
     ['lid', 'gid'].forEach(attrName => {
-      Entity._fieldDefs[attrName] = {
+      Entity._defField({
         kind: 'scalar',
         cardinality: 'one',
         from: Entity,
         name: attrName,
         type: this._types.Key,
         reverse: null,
-      };
+      });
     });
-    Entity._fieldDefs['type'] = {
+    Entity._defField({
       kind: 'scalar',
       cardinality: 'one',
       from: Entity,
       name: 'type',
       type: this._types.Type,
       reverse: null,
-    };
+    });
 
     // Decorate types with attributes.
     Object.keys(attributes).forEach(typeName => {
@@ -209,21 +227,21 @@ class SchemaBuilder {
           throw Error(type._name + '.' + attrName +
               ' conflicts with builtin field');
         }
-        type._fieldDefs[attrName] = {
+        type._defField({
           kind: 'scalar',
           cardinality: 'one',
           from: type,
           name: attrName,
           type: attrType,
           reverse: null,
-        };
+        });
       });
 
     });
 
     // Decorate types with relationships.
     let addRelation = (fromType, fromCard, toCard, name, toType) => {
-      if (name in fromType._fieldDefs) {
+      if (fromType._fieldDefs.hasOwnProperty(name)) {
         throw Error(`Relation redefines field: ${fromType}.${name}`);
       }
       let def = {
@@ -234,7 +252,7 @@ class SchemaBuilder {
         type: toType,
         reverse: null,
       };
-      fromType._fieldDefs[name] = def;
+      fromType._defField(def);
       return def;
     };
     relationships.forEach(([left, right]) => {
