@@ -245,7 +245,7 @@ class SchemaBuilder {
         throw Error(`Relation redefines field: ${fromType}.${name}`);
       }
       let def = {
-        kind: relationKinds[fromCard][toCard],
+        kind: relationKinds[toCard][fromCard],
         cardinality: fromCard,
         from: fromType,
         name,

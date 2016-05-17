@@ -53,7 +53,7 @@ class Graph {
 
   _put(entity) {
 
-    if (typeof entity !== 'object') {
+    if (typeof entity !== 'object' || Array.isArray(entity)) {
       this._log('expected entity object:', entity);
       return undefined;
     }
@@ -182,22 +182,47 @@ class Graph {
           break;
         }
 
-          /*
-        case 'oneToMany':
-          this._setHalf(obj, field, value);
-          this._assertHalf(obj, field, oldValue);
-          this._assertHalf(XXX);
-          break;
-
-        case 'manyToOne':
-          let other = this._put(value);
-          this._assertHalf(obj, field, value);
-          this._retractHalf(obj, field, value);
-          this._assertHalf(XXX);
+        case 'oneToMany': {
+          let set = getOwn(obj, name);
+          if (!set) {
+            set = {};
+            obj[name] = set;
+          }
+          value.forEach(x => {
+            let other = this._put(x);
+            if (!other) {
+              return;
+            }
+            let prior = getOwn(other, reverse.name);
+            if (prior) {
+              this._remove(other, reverse, prior);
+            }
+            other[reverse.name] = obj;
+            set[other['lid']] = other;
+          })
           break;
         }
 
-        case 'manyToMany':
+        case 'manyToOne': {
+          let prior = getOwn(obj, name);
+          if (prior) {
+            this._remove(obj, field, prior);
+          }
+          let other = this._put(value);
+          if (!other) {
+            return;
+          }
+          let set = other[reverse.name];
+          if (!set) {
+            set = {};
+            other[name] = set;
+          }
+          set[obj.lid] = obj;
+          break;
+        }
+
+          /*
+        case 'manyToMany': {
           this._assertHalf(obj, field, value);
           this._assertHalf(XXX);
           break;
@@ -275,7 +300,7 @@ class Graph {
         if (cardinality === 'one') {
           return rec(value)
         }
-        return Object.keys(value).map(rec);
+        return Object.keys(value).map(lid => rec(value[lid]));
       };
 
       let entity = {};
@@ -316,18 +341,24 @@ class Graph {
         }
 
         case 'oneToOne': {
-          delete value[reverse.name];
+          let other = value;
+          delete other[reverse.name];
           //XXX if destroy cascading.
           break;
         }
 
-        case 'oneToMany': {
-          throw Error('not implemented'); //XXX
+        case 'manyToOne': {
+          let other = value;
+          delete other[obj.lid];
           break;
         }
 
-        case 'manyToOne': {
-          throw Error('not implemented'); //XXX
+        case 'oneToMany': {
+          //XXX if destroy cascading
+          let set = value;
+          eachPair(set, (lid, other) => {
+            delete other[reverse.name];
+          });
           break;
         }
 
@@ -382,17 +413,42 @@ class Graph {
       }
 
       case 'oneToMany': {
-        throw Error('not implemented'); //XXX
+        let set = getOwn(from, name);
+        if (!set) {
+          return;
+        }
+        let other = getOwn(set, to.lid);
+        delete other[reverse.name];
+        delete set[to.lid];
+        if (set.length === 0) {
+          delete from[name];
+        }
         break;
       }
 
       case 'manyToOne': {
-        throw Error('not implemented'); //XXX
+        let set = getOwn(to, reverse.name);
+        if (!set) {
+          return;
+        }
+        delete set[from.lid];
+        if (set.length === 0) {
+          delete to[name];
+        }
         break;
       }
 
       case 'manyToMany': {
-        throw Error('not implemented'); //XXX
+        let fromSet = getOwn(from, name);
+        let toSet = getOwn(to, reverse.name);
+        delete fromSet[to.lid];
+        delete toSet[from.lid];
+        if (fromSet.length === 0) {
+          delete from[name];
+        }
+        if (toSet.length === 0) {
+          delete to[reverse.name];
+        }
         break;
       }
 
