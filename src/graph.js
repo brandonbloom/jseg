@@ -198,8 +198,8 @@ class Graph {
               this._remove(other, reverse, prior);
             }
             other[reverse.name] = obj;
-            set[other['lid']] = other;
-          })
+            set[other.lid] = other;
+          });
           break;
         }
 
@@ -215,19 +215,33 @@ class Graph {
           let set = other[reverse.name];
           if (!set) {
             set = {};
-            other[name] = set;
+            other[reverse.name] = set;
           }
           set[obj.lid] = obj;
           break;
         }
 
-          /*
         case 'manyToMany': {
-          this._assertHalf(obj, field, value);
-          this._assertHalf(XXX);
+          let fromSet = getOwn(obj, name);
+          if (!fromSet) {
+            fromSet = {};
+            obj[name] = fromSet;
+          }
+          value.forEach(x => {
+            let other = this._put(x);
+            if (!other) {
+              return;
+            }
+            let toSet = getOwn(other, reverse.name);
+            if (!toSet) {
+              toSet = {};
+              other[reverse.name] = toSet;
+            }
+            fromSet[other.lid] = other;
+            toSet[obj.lid] = obj;
+          });
           break;
         }
-          */
 
         default: {
           this._log('cannot put field of unexpected kind:', kind);

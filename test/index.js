@@ -4,3 +4,4 @@ require('./json');
 require('./validation');
 require('./oneToOne');
 require('./oneToMany');
+require('./manyToMany');
