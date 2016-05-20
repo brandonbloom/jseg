@@ -1,4 +1,4 @@
-let {getOwn, eachPair, StringMap} = require('./util');
+let {getOwn, eachPair, objEmpty, StringMap} = require('./util');
 let s = require('./schema');
 
 
@@ -349,7 +349,7 @@ class Graph {
 
         case 'manyToOne': {
           let other = value;
-          delete other[obj.lid];
+          delete other[reverse.name][obj.lid];
           break;
         }
 
@@ -413,28 +413,12 @@ class Graph {
       }
 
       case 'oneToMany': {
-        let set = getOwn(from, name);
-        if (!set) {
-          return;
-        }
-        let other = getOwn(set, to.lid);
-        delete other[reverse.name];
-        delete set[to.lid];
-        if (set.length === 0) {
-          delete from[name];
-        }
+        this._removeOneToMany(from, relation, to);
         break;
       }
 
       case 'manyToOne': {
-        let set = getOwn(to, reverse.name);
-        if (!set) {
-          return;
-        }
-        delete set[from.lid];
-        if (set.length === 0) {
-          delete to[name];
-        }
+        this._removeOneToMany(to, reverse, from);
         break;
       }
 
@@ -443,10 +427,10 @@ class Graph {
         let toSet = getOwn(to, reverse.name);
         delete fromSet[to.lid];
         delete toSet[from.lid];
-        if (fromSet.length === 0) {
+        if (objEmpty(fromSet)) {
           delete from[name];
         }
-        if (toSet.length === 0) {
+        if (objEmpty(toSet)) {
           delete to[reverse.name];
         }
         break;
@@ -459,6 +443,20 @@ class Graph {
 
     }
 
+  }
+
+  _removeOneToMany(from, relation, to) {
+    let {name, reverse} = relation;
+    let set = getOwn(from, name);
+    if (!set) {
+      return;
+    }
+    let other = getOwn(set, to.lid);
+    delete other[reverse.name];
+    delete set[to.lid];
+    if (objEmpty(set)) {
+      delete from[name];
+    }
   }
 
 

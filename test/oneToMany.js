@@ -76,7 +76,6 @@ tg.check('root', {
 });
 
 tg.g.destroy('y');
-tg.show('root');
 tg.check('root', {
   type: t.Node,
   lid: 'root',
@@ -98,7 +97,7 @@ tg.check('root', {
   ],
 });
 
-tg.g.remove(t.Node, 'root', 'many', 'x');
+tg.g.remove('root', 'children', 'x');
 tg.check('root', {
   type: t.Node,
   lid: 'root',

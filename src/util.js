@@ -6,6 +6,13 @@ let eachPair = (obj, f) => {
   }
 };
 
+let objEmpty = (obj) => {
+  for (let key in obj) {
+    return false;
+  }
+  return true;
+};
+
 // A string map safe for inherited properties, including __prototype__.
 class StringMap {
 
@@ -27,4 +34,4 @@ class StringMap {
 
 }
 
-module.exports = {getOwn, eachPair, StringMap};
+module.exports = {getOwn, objEmpty, eachPair, StringMap};
