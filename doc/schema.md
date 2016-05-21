@@ -152,7 +152,9 @@ Attribute fields have "scalar" types.
 Standard JSON data is supported:
 
 `Text`: Normal JSON strings.
+
 `Bool`: Normal JSON booleans.
+
 `Num`: Normal JSON numbers.
 
 Some common JavaScript types are also provided:
@@ -162,6 +164,7 @@ Some common JavaScript types are also provided:
 Two builtin types are treated specially:
 
 `Key`: Like `text`, but must be non-empty and will enable `lookup`.
+
 `Type`: JSEG Type objects. Must come from the graph's schema.
 
 ### Custom Types
