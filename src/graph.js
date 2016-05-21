@@ -258,7 +258,7 @@ class Graph {
 
   get(lid, options) {
     let obj = this._findByLid(lid);
-    return obj ? this._get(obj, options) : null;
+    return obj ? this._read(obj, options) : null;
   }
 
   lookup(type, attribute, value, options) {
@@ -272,7 +272,7 @@ class Graph {
       return null;
     }
     let obj = this._find(keyField, value);
-    return obj ? this._get(obj, options) : null;
+    return obj ? this._read(obj, options) : null;
   }
 
   _findByLid(lid) {
@@ -287,7 +287,7 @@ class Graph {
     return index.get(value);
   }
 
-  _get(root, options) {
+  _read(root, options) {
 
     let {depth, json} = Object.assign({depth: 1}, options);
     depth = depth || -1;
