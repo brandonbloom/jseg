@@ -1,0 +1,15 @@
+{
+  "name": "jseg",
+  "version": "2.0.0",
+  "description": "JavaScript Entity Graph: A super simple, in-memory, JS graph database.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brandonbloom/jseg.git"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "author": "Brandon Bloom",
+  "license": "MIT"
+}
