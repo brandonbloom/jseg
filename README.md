@@ -63,7 +63,7 @@ builder.finalize({
   relationships: [
 
     [[types.Likeable, 'many', 'likers'],
-     [types.User, 'many', likes']],
+     [types.User, 'many', 'likes']],
 
     [[types.Comment, 'one', 'author'],
      [types.User, 'many', 'comments', {
@@ -114,7 +114,7 @@ graph.put({
 
 console.log(graph.get('user:brandonbloom'));
 
-console.log(graph.get('comment-1', {depth: 3}));
+console.log(graph.get('comment-1', {depth: 3, json: true}));
 
 console.log(graph.lookup('Link', 'href', 'example.com'));
 
