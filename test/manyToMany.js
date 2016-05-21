@@ -20,8 +20,6 @@ b.finalize({
 let tg = new TestGraph(t);
 
 
-//XXX These tests are pretty confusing... and I'm not even sure they are valid.
-
 tg.g.put({
   type: t.Node,
   lid: 'a',

@@ -5,3 +5,4 @@ require('./validation');
 require('./oneToOne');
 require('./oneToMany');
 require('./manyToMany');
+require('./depth');
