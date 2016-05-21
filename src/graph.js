@@ -343,12 +343,24 @@ class Graph {
   }
 
   _destroy(obj) {
+
+    // Skip objects already destroyed during the casacde.
+    if (!this._findByLid(obj.lid)) {
+      return;
+    }
+
+    let cascade = [];
+
     eachPair(obj, (fieldName, value) => {
-      let {from, type, kind, reverse} = obj.type._field(fieldName);
+
+      let field = obj.type._field(fieldName)
+      let {from, kind, reverse, destroy} = field;
+
+      // Remove index entries and reverse links.
       switch (kind) {
 
         case 'scalar': {
-          if (type === this._schema.Key) {
+          if (field.type === this._schema.Key) {
             let index = this._indexes[from._name][fieldName]
             index.del(value);
           }
@@ -356,29 +368,28 @@ class Graph {
         }
 
         case 'oneToOne': {
-          let other = value;
-          delete other[reverse.name];
-          //XXX if destroy cascading.
-          break;
-        }
-
-        case 'manyToOne': {
-          let other = value;
-          delete other[reverse.name][obj.lid];
+          delete value[reverse.name];
           break;
         }
 
         case 'oneToMany': {
-          //XXX if destroy cascading
-          let set = value;
-          eachPair(set, (lid, other) => {
+          eachPair(value, (lid, other) => {
             delete other[reverse.name];
           });
           break;
         }
 
+        case 'manyToOne': {
+          let set = value[reverse.name];
+          delete set[obj.lid];
+          break;
+        }
+
         case 'manyToMany': {
-          throw Error('not implemented'); //XXX
+          eachPair(value, (lid, other) => {
+            let set = other[reverse.name];
+            delete set[obj.lid];
+          });
           break;
         }
 
@@ -388,7 +399,26 @@ class Graph {
         }
 
       }
+
+      // Schedule cascading deletes after reverse references destroyed.
+      if (!destroy) {
+        return;
+      }
+      if (field.cardinality === 'many') {
+        eachPair(value, (lid, other) => {
+          cascade.push(other);
+        });
+      } else if (value) {
+        cascade.push(value);
+      }
+
     });
+
+    // Preform the delayed cascding destroys.
+    cascade.forEach(other => {
+      this._destroy(other);
+    });
+
   }
 
   remove(fromLid, relationName, toLid) {

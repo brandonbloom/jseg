@@ -7,3 +7,4 @@ require('./oneToMany');
 require('./manyToMany');
 require('./depth');
 require('./ordering');
+require('./cascade');

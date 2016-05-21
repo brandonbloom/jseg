@@ -8,7 +8,13 @@ let banInsanity = (s) => {
 }
 
 let compareLids = (x, y) => {
-  return Math.sign(x.lid - y.lid);
+  if (x.lid < y.lid) {
+    return -1;
+  }
+  if (x.lid > y.lid) {
+    return 1;
+  }
+  return 0;
 };
 
 
@@ -61,14 +67,21 @@ class Composite extends Type {
     include(this);
 
     // Maps field names defined directly on this type to definition structures.
+    //
     // Definition structures have form:
-    // {kind, from, cardinality, name, type, reverse, compare}.
-    //   from: Type on which this field was defined.
-    //   cardinality: 'one' or 'many'. Always 'one' for scalars.
-    //   type: Attribute value's type.
+    // {kind, from, name, type, cardinality}.
     //   kind: One of 'scalar', 'oneToMany', 'manyToOne', or 'manyToMany'.
+    //   from: Type on which this field was defined.
+    //   name: Name of field on objects of from type.
+    //   type: Attribute value's type for scalars, or related objects type.
+    //   cardinality: 'one' or 'many'. Always 'one' for scalars.
+    //
+    // Relationships have additional fields:
+    // {..., reverse, compare, destroy}.
     //   reverse: relationship's counter part on destination type.
-    //   compare: function for sorting cardinality 'many' arrays on query.
+    //   options: Function for sorting cardinality 'many' arrays on query.
+    //   destroy: true if destroy should cascade along this relationship.
+    //
     // Populated during type system finalization.
     this._fieldDefs = {};
 
@@ -207,8 +220,6 @@ class SchemaBuilder {
         from: Entity,
         name: attrName,
         type: this._types.Key,
-        reverse: null,
-        compare: null,
       });
     });
     Entity._defField({
@@ -217,8 +228,6 @@ class SchemaBuilder {
       from: Entity,
       name: 'type',
       type: this._types.Type,
-      reverse: null,
-      compare: null,
     });
 
     // Decorate types with attributes.
@@ -241,8 +250,6 @@ class SchemaBuilder {
           from: type,
           name: attrName,
           type: attrType,
-          reverse: null,
-          compare: null,
         });
       });
 
@@ -253,7 +260,10 @@ class SchemaBuilder {
       if (fromType._fieldDefs.hasOwnProperty(name)) {
         throw Error(`Relation redefines field: ${fromType}.${name}`);
       }
-      let {compare} = options || {};
+      let {compare, destroy} = Object.assign({
+        compare: compareLids,
+        destroy: false,
+      }, options);
       let def = {
         kind: relationKinds[toCard][fromCard],
         cardinality: fromCard,
@@ -261,7 +271,8 @@ class SchemaBuilder {
         name,
         type: toType,
         reverse: null, // Knot tied below.
-        compare: compare || compareLids,
+        compare,
+        destroy,
       };
       fromType._defField(def);
       return def;
