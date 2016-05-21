@@ -20,6 +20,7 @@ Second, declare the abstract traits and concrete entities of objects that make
 up the graph. Both traits and entities may inherit other traits.
 
 builder.trait(*name*, _[traits...]_)
+
 builder.entity(*name*, _[traits...]_)
 
 Declared types immediately appear in the type map:
