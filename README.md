@@ -23,8 +23,7 @@ stuff, but not yet battle tested.
 Version 1 is in active use in one real product. Check out [the v1 branch][1].
 Unlikely to see much future work, but bug fixes are welcome.
 
-V2 documentation is in progress. See [the V1 readme][2] for rationale,
-background, goals, etc.
+See [the v1 readme][2] for rationale, background, goals, etc.
 
 
 # Usage

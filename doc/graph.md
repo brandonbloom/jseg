@@ -72,14 +72,14 @@ Fields set to null are deleted from entities.
 
 ### Destroy
 
-graph.destroy(_lid_)
+graph.destroy(*lid*)
 
 Removes an object from the graph by lid. Recursively destroys related objects
 if cascading is specified in the schema.
 
 ### Remove
 
-graph.destroy(_fromLid_, _fieldName_, _toLid_)
+graph.destroy(*fromLid*, *fieldName*, *toLid*)
 
 Removes a related object from a set of references.
 
