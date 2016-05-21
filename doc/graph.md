@@ -60,7 +60,7 @@ serializing the output of a query.
 
 ## Adding Data
 
-graph.put(_entity_)
+graph.put(*entity*)
 
 Puts a whole tree of related objects. Properties are merged in to existing
 objects with matching `lid` fields. Relationship arrays are set-unioned.
