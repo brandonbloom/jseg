@@ -34,10 +34,10 @@ class Type {
 
 class Scalar extends Type {
 
-  constructor(schema, name, {marshal, unmarshal}) {
+  constructor(schema, name, {validate, serialize}) {
     super(schema, name);
-    this._marshal = marshal || ((x) => x);
-    this._unmarshal = unmarshal || ((x) => x);
+    this._validate = validate || ((x) => x);
+    this._serialize = serialize || ((x) => x);
   }
 
 }
@@ -139,7 +139,7 @@ class SchemaBuilder {
     // Define standard scalar types.
 
     this.scalar('Key', {
-      marshal: (x) => {
+      validate: (x) => {
         if (typeof x === 'string') {
           x = x.trim();
           if (x !== '') {
@@ -152,7 +152,7 @@ class SchemaBuilder {
 
     let primitive = (name, tag) => {
       this.scalar(name, {
-        marshal: (x) => {
+        validate: (x) => {
           if (typeof x !== tag) {
             throw Error('Expected ' + tag);
           }
@@ -166,13 +166,13 @@ class SchemaBuilder {
     primitive('Num', 'number');
 
     this.scalar('Type', {
-      marshal: (x) => coerceType(this._types, x),
-      unmarshal: (x) => x._name,
+      validate: (x) => coerceType(this._types, x),
+      serialize: (x) => x._name,
     });
 
     this.scalar('Time', {
-      marshal: (x) => new Date(x),
-      unmarshal: (x) => x.toISOString(),
+      validate: (x) => new Date(x),
+      serialize: (x) => x.toISOString(),
     });
 
     // Declare the only special composite type.

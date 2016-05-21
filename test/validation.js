@@ -7,10 +7,10 @@ let [b, t] = jseg.newSchema();
 b.entity('Thing');
 
 b.scalar('Rounded', {
-  marshal: Math.round,
+  validate: Math.round,
 });
 b.scalar('Even', {
-  marshal: (x) => {
+  validate: (x) => {
     if (x % 2 !== 0) {
       throw Error('expected even number');
     }

@@ -136,7 +136,7 @@ class Graph {
     if (kind === 'scalar') {
 
       let oldValue = getOwn(obj, name);
-      let newValue = this._validate(name, type._marshal, value);
+      let newValue = this._validate(name, type._validate, value);
       if (newValue === null) {
         delete obj[name];
       } else if (typeof newValue !== 'undefined') {
@@ -291,7 +291,7 @@ class Graph {
 
     let {depth, json} = Object.assign({depth: 1}, options);
     depth = depth || -1;
-    let unmarshal = (json ?
+    let marshal = (json ?
       (f, x) => f(x) :
       (_, x) => x
     );
@@ -309,7 +309,7 @@ class Graph {
         let value = obj[fieldName]
         let {type, kind, cardinality, compare} = obj.type._field(fieldName);
         if (kind === 'scalar') {
-          return unmarshal(type._unmarshal, value);
+          return marshal(type._serialize, value);
         }
         if (cardinality === 'one') {
           return rec(value)
