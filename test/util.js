@@ -7,7 +7,7 @@ let classify = (x) => {
     return 'scalar';
   }
   if (Array.isArray(x)) {
-    return 'set';
+    return 'array';
   }
   if (typeof x === 'object') {
     return 'entity';
@@ -34,12 +34,12 @@ let assertEquiv = (x, y) => {
     switch (cx) {
 
       case 'scalar':
-        if (cx !== cy) {
+        if (x !== y) {
           fail('' + x + ' !== ' + y);
         }
         break;
 
-      case 'set':
+      case 'array':
         if (x.length !== y.length) {
           fail('length ' + x.length + ' !== ' + y.length);
         }
@@ -61,6 +61,10 @@ let assertEquiv = (x, y) => {
           path.pop();
         });
         break;
+
+      default:
+        throw Error('Invalid classification: ' + cx);
+
     }
 
   };

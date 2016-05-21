@@ -7,6 +7,11 @@ let banInsanity = (s) => {
   }
 }
 
+let compareLids = (x, y) => {
+  return Math.sign(x.lid - y.lid);
+};
+
+
 class Type {
 
   constructor(schema, name) {
@@ -57,12 +62,13 @@ class Composite extends Type {
 
     // Maps field names defined directly on this type to definition structures.
     // Definition structures have form:
-    // {kind, from, cardinality, name, type, reverse}.
+    // {kind, from, cardinality, name, type, reverse, compare}.
     //   from: Type on which this field was defined.
     //   cardinality: 'one' or 'many'. Always 'one' for scalars.
     //   type: Attribute value's type.
     //   kind: One of 'scalar', 'oneToMany', 'manyToOne', or 'manyToMany'.
     //   reverse: relationship's counter part on destination type.
+    //   compare: function for sorting cardinality 'many' arrays on query.
     // Populated during type system finalization.
     this._fieldDefs = {};
 
@@ -202,6 +208,7 @@ class SchemaBuilder {
         name: attrName,
         type: this._types.Key,
         reverse: null,
+        compare: null,
       });
     });
     Entity._defField({
@@ -211,6 +218,7 @@ class SchemaBuilder {
       name: 'type',
       type: this._types.Type,
       reverse: null,
+      compare: null,
     });
 
     // Decorate types with attributes.
@@ -234,32 +242,35 @@ class SchemaBuilder {
           name: attrName,
           type: attrType,
           reverse: null,
+          compare: null,
         });
       });
 
     });
 
     // Decorate types with relationships.
-    let addRelation = (fromType, fromCard, toCard, name, toType) => {
+    let addRelation = (fromType, fromCard, toCard, name, toType, options) => {
       if (fromType._fieldDefs.hasOwnProperty(name)) {
         throw Error(`Relation redefines field: ${fromType}.${name}`);
       }
+      let {compare} = options || {};
       let def = {
         kind: relationKinds[toCard][fromCard],
         cardinality: fromCard,
         from: fromType,
         name,
         type: toType,
-        reverse: null,
+        reverse: null, // Knot tied below.
+        compare: compare || compareLids,
       };
       fromType._defField(def);
       return def;
     };
     relationships.forEach(([left, right]) => {
-      let [typeL, cardL, nameL] = left;
-      let [typeR, cardR, nameR] = right;
-      let defL = addRelation(typeL, cardL, cardR, nameL, typeR);
-      let defR = addRelation(typeR, cardR, cardL, nameR, typeL);
+      let [typeL, cardL, nameL, optsL] = left;
+      let [typeR, cardR, nameR, optsR] = right;
+      let defL = addRelation(typeL, cardL, cardR, nameL, typeR, optsL);
+      let defR = addRelation(typeR, cardR, cardL, nameR, typeL, optsR);
       defL.reverse = defR;
       defR.reverse = defL;
     });

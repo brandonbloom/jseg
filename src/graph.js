@@ -307,14 +307,15 @@ class Graph {
 
       let getField = (fieldName) => {
         let value = obj[fieldName]
-        let {type, kind, cardinality} = obj.type._field(fieldName);
+        let {type, kind, cardinality, compare} = obj.type._field(fieldName);
         if (kind === 'scalar') {
           return unmarshal(type._unmarshal, value);
         }
         if (cardinality === 'one') {
           return rec(value)
         }
-        return Object.keys(value).map(lid => rec(value[lid]));
+        let lids = Object.keys(value);
+        return lids.map(lid => rec(value[lid])).sort(compare);
       };
 
       let entity = {};
