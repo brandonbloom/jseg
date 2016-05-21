@@ -2,7 +2,7 @@
 
 ## Construction
 
-Graph objects are constructed with a [schema type map][./schema.md].
+Graph objects are constructed with a [schema type map](./schema.md).
 
 ```javascript
 let jseg = require('jseg');
