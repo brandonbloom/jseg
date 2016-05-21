@@ -29,7 +29,7 @@ background, goals, etc.
 
 # Usage
 
-This is just a taste. See [docs](./doc) for more details.
+This is just a taste. See [docs](./src/doc) for more details.
 
 ```javascript
 let jseg = require('jseg');
