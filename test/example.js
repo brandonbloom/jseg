@@ -1,38 +1,4 @@
-# JavaScript Entity Graph
-
-A in-memory graph database for JavaScript data.
-
-
-## Overview
-
-- Entity/Attribute/Value graph-based information model.
-  - Schema enforces relationships, provides unique indexes, and validates data.
-- Operates on plain-old JavaScript objects.
-  - Hierarchical data is flattened on put and reconstituted on get.
-  - Not necessarily just JSON (allows dates, etc).
-- No spooky action at a distance.
-  - Every graph operation makes an implicit defensive copy.
-  - Many of the benefits of immutability without loss of JavaScript idioms.
-
-
-# Status
-
-Expect bugs and API changes. This is version 2 with lots of new/improved
-stuff, but not yet battle tested.
-
-Version 1 is in active use in one real product. Check out [the v1 branch][1].
-Unlikely to see much future work, but bug fixes are welcome.
-
-V2 documentation is in progress. See [the V1 readme][2] for rationale,
-background, goals, etc.
-
-
-# Usage
-
-This is just a taste. See [docs](./doc) for more details.
-
-```javascript
-let jseg = require('jseg');
+let jseg = require('../src');
 
 let [builder, types] = jseg.newSchema();
 
@@ -63,7 +29,7 @@ builder.finalize({
   relationships: [
 
     [[types.Likeable, 'many', 'likers'],
-     [types.User, 'many', likes']],
+     [types.User, 'many', 'likes']],
 
     [[types.Comment, 'one', 'author'],
      [types.User, 'many', 'comments', {
@@ -114,15 +80,9 @@ graph.put({
 
 console.log(graph.get('user:brandonbloom'));
 
-console.log(graph.get('comment-1', {depth: 3}));
+console.log(graph.get('comment-1', {depth: 3, json: true}));
 
 console.log(graph.lookup('Link', 'href', 'example.com'));
 
 graph.destroy('comment-2');
 console.log(graph.get('comment-2'));
-```
-
-
-
-[1]: https://github.com/brandonbloom/jseg/tree/v1
-[2]: https://github.com/brandonbloom/jseg/blob/v1/README.md
