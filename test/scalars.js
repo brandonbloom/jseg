@@ -10,6 +10,7 @@ b.finalize({
 
   attributes: {
     Thing: {
+      any: t.Scalar,
       text: t.Text,
       deleteme: t.Text,
       bool: t.Bool,
@@ -39,10 +40,18 @@ tg.check('x', {
   deleteme: 'ok',
 });
 
+class Foo {
+  constructor(bar) {
+    this.bar = bar;
+  }
+}
+let foo = new Foo();
+
 tg.g.put({
   lid: 'x',
   deleteme: null,
   bool: false,
+  any: foo,
 });
 
 tg.check('x', {
@@ -50,4 +59,5 @@ tg.check('x', {
   type: t.Thing,
   text: 'y',
   bool: false,
+  any: foo,
 });

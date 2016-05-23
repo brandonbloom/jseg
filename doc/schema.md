@@ -150,6 +150,8 @@ Attribute fields have "scalar" types.
 
 ### Builtin Types
 
+`Scalar`: Any non-null JavaScript object.
+
 Standard JSON data is supported:
 
 `Text`: Normal JSON strings.

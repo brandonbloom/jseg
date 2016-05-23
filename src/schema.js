@@ -138,6 +138,10 @@ class SchemaBuilder {
 
     // Define standard scalar types.
 
+    this.scalar('Scalar', {
+      validate: (x) => x,
+    });
+
     this.scalar('Key', {
       validate: (x) => {
         if (typeof x === 'string') {
