@@ -122,3 +122,21 @@ tg.check('root', {
   lid: 'root',
 });
 
+
+tg.g.put({
+  type: t.Node,
+  lid: 'x',
+  parent: {lid: 'root'},
+});
+
+tg.check('x', {
+  type: t.Node,
+  lid: 'x',
+  parent: {
+    type: t.Node,
+    lid: 'root',
+    children: [
+      {lid: 'x'},
+    ],
+  },
+});

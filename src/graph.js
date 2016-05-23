@@ -103,7 +103,8 @@ class Graph {
       }
       let field = obj.type._field(fieldName);
       if (!field) {
-        this._log('unknown field', fieldName, 'on', obj.type);
+        this._log('unknown field', JSON.stringify(fieldName),
+                  'on', obj.type._name);
         return;
       }
       this._putField(obj, field, value);
@@ -212,6 +213,7 @@ class Graph {
           if (!other) {
             return;
           }
+          obj[name] = other;
           let set = other[reverse.name];
           if (!set) {
             set = {};

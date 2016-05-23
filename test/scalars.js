@@ -22,7 +22,7 @@ b.finalize({
 
 let tg = new TestGraph(t);
 
-tg.expectMessage('unknown field mystery', () => {
+tg.expectMessage('unknown field "mystery"', () => {
   tg.g.put({
     type: t.Thing,
     lid: 'x',
