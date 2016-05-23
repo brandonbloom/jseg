@@ -41,7 +41,7 @@ let assertEquiv = (x, y) => {
 
       case 'array':
         if (x.length !== y.length) {
-          fail('length ' + x.length + ' !== ' + y.length);
+          fail('length ' + x.length + ' but expected ' + y.length);
         }
         for (let i = 0; i < x.length; i++) {
           path.push(i);

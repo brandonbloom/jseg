@@ -27,7 +27,7 @@ Relationships are returned as nested objects with a `lid` key. Additional
 information about related entities can be acquired via additional queries
 or recursively with the `depth` option.
 
-Null field values and empty collections are omitted.
+Null field values and empty collections are included.
 
 Returns null if no if the object does not exist.
 

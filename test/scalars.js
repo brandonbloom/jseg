@@ -38,6 +38,8 @@ tg.check('x', {
   lid: 'x',
   text: 'y',
   deleteme: 'ok',
+  any: null,
+  bool: null,
 });
 
 class Foo {
@@ -58,6 +60,7 @@ tg.check('x', {
   lid: 'x',
   type: t.Thing,
   text: 'y',
+  deleteme: null,
   bool: false,
   any: foo,
 });

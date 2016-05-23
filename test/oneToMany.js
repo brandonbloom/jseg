@@ -26,6 +26,8 @@ tg.g.put({
 tg.check('loner', {
   type: t.Node,
   lid: 'loner',
+  parent: null,
+  children: [],
 });
 
 tg.g.put({
@@ -50,6 +52,7 @@ tg.g.put({
 tg.check('root', {
   type: t.Node,
   lid: 'root',
+  parent: null,
   children: [
     {
       type: t.Node,
@@ -57,6 +60,7 @@ tg.check('root', {
       parent: {
         lid: 'root',
       },
+      children: [],
     },
     {
       type: t.Node,
@@ -64,6 +68,7 @@ tg.check('root', {
       parent: {
         lid: 'root',
       },
+      children: [],
     },
     {
       type: t.Node,
@@ -71,6 +76,7 @@ tg.check('root', {
       parent: {
         lid: 'root',
       },
+      children: [],
     },
   ],
 });
@@ -79,6 +85,7 @@ tg.g.destroy('y');
 tg.check('root', {
   type: t.Node,
   lid: 'root',
+  parent: null,
   children: [
     {
       type: t.Node,
@@ -86,6 +93,7 @@ tg.check('root', {
       parent: {
         lid: 'root',
       },
+      children: [],
     },
     {
       type: t.Node,
@@ -93,6 +101,7 @@ tg.check('root', {
       parent: {
         lid: 'root',
       },
+      children: [],
     },
   ],
 });
@@ -101,6 +110,7 @@ tg.g.remove('root', 'children', 'x');
 tg.check('root', {
   type: t.Node,
   lid: 'root',
+  parent: null,
   children: [
     {
       type: t.Node,
@@ -108,6 +118,7 @@ tg.check('root', {
       parent: {
         lid: 'root',
       },
+      children: [],
     },
   ],
 });
@@ -120,6 +131,8 @@ tg.g.put({
 tg.check('root', {
   type: t.Node,
   lid: 'root',
+  parent: null,
+  children: [],
 });
 
 
@@ -135,8 +148,10 @@ tg.check('x', {
   parent: {
     type: t.Node,
     lid: 'root',
+    parent: null,
     children: [
       {lid: 'x'},
     ],
   },
+  children: [],
 });

@@ -60,4 +60,5 @@ tg.check('bad', {
   type: t.Thing,
   lid: 'bad',
   rounded: 6,
+  even: null,
 });

@@ -292,7 +292,9 @@ class Graph {
   _read(root, options) {
 
     let {depth, json} = Object.assign({depth: 1}, options);
+
     depth = depth || -1;
+
     let marshal = (json ?
       (f, x) => f(x) :
       (_, x) => x
@@ -308,20 +310,27 @@ class Graph {
       depth--;
 
       let getField = (fieldName) => {
-        let value = obj[fieldName]
+        let value = getOwn(obj, fieldName);
         let {type, kind, cardinality, compare} = obj.type._field(fieldName);
-        if (kind === 'scalar') {
-          return marshal(type._serialize, value);
-        }
+        let undef = (typeof value === 'undefined');
         if (cardinality === 'one') {
+          if (undef) {
+            return null;
+          }
+          if (kind === 'scalar') {
+            return marshal(type._serialize, value);
+          }
           return rec(value)
+        }
+        if (undef) {
+          return [];
         }
         let lids = Object.keys(value);
         return lids.map(lid => rec(value[lid])).sort(compare);
       };
 
       let entity = {};
-      for (let fieldName in obj) {
+      for (let fieldName in obj.type._allFields) {
         entity[fieldName] = getField(fieldName);
       }
       inside[obj.lid] = false;

@@ -54,7 +54,11 @@ tg.check('b1', {
 
 tg.g.destroy('a1');
 tg.check('a1', null);
-tg.check('b1', {lid: 'b1', type: t.B});
+tg.check('b1', {
+  lid: 'b1',
+  type: t.B,
+  a: null,
+});
 
 tg.g.destroy('b1');
 tg.check('b1', null);
@@ -85,5 +89,5 @@ tg.g.remove('a2', 'b', 'b2');
 tg.check('a2', {
   type: t.A,
   lid: 'a2',
+  b: null,
 });
-

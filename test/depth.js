@@ -40,6 +40,7 @@ tg.g.put({
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+  prev: null,
   next: {
     type: t.Node,
     lid: 'b',
@@ -51,7 +52,8 @@ tg.check('a', {
         lid: 'd',
         prev: {
           lid: 'c',
-        }
+        },
+        next: null,
       },
       prev: {
         lid: 'b',
@@ -66,6 +68,7 @@ tg.check('a', {
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+  prev: null,
   next: {
     type: t.Node,
     lid: 'b',
@@ -75,6 +78,7 @@ tg.check('a', {
       next: {
         type: t.Node,
         lid: 'd',
+        next: null,
         prev: {
           lid: 'c',
         }
@@ -92,6 +96,7 @@ tg.check('a', {
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+  prev: null,
   next: {
     lid: 'b',
   },
@@ -100,6 +105,7 @@ tg.check('a', {
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+  prev: null,
   next: {
     type: t.Node,
     lid: 'b',
@@ -115,6 +121,7 @@ tg.check('a', {
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+      prev: null,
   next: {
     type: t.Node,
     lid: 'b',

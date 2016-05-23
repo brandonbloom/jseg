@@ -51,6 +51,7 @@ tg.g.destroy('y');
 tg.check('root', {
   type: t.Tree,
   lid: 'root',
+  parent: null,
   children: [
     {
       type: t.Tree,
@@ -58,6 +59,7 @@ tg.check('root', {
       parent: {
         lid: 'root',
       },
+      children: [],
     },
   ],
 });
@@ -82,6 +84,8 @@ tg.g.destroy('b');
 tg.check('a', {
   type: t.List,
   lid: 'a',
+  prev: null,
+  next: null,
 });
 tg.check('b', null);
 tg.check('c', null);

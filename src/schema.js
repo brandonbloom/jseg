@@ -217,14 +217,12 @@ class SchemaBuilder {
 
     // Add special attributes to Entity.
     let Entity = this._types.Entity;
-    ['lid', 'gid'].forEach(attrName => {
-      Entity._defField({
-        kind: 'scalar',
-        cardinality: 'one',
-        from: Entity,
-        name: attrName,
-        type: this._types.Key,
-      });
+    Entity._defField({
+      kind: 'scalar',
+      cardinality: 'one',
+      from: Entity,
+      name: 'lid',
+      type: this._types.Key,
     });
     Entity._defField({
       kind: 'scalar',

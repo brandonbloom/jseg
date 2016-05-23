@@ -38,6 +38,7 @@ tg.g.put({
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+  nToM: [],
   mToN: [
     {
       type: t.Node,
@@ -47,6 +48,7 @@ tg.check('a', {
           lid: 'a',
         },
       ],
+      mToN: [],
     },
     {
       type: t.Node,
@@ -56,6 +58,7 @@ tg.check('a', {
           lid: 'a',
         },
       ],
+      mToN: [],
     },
   ],
 });
@@ -64,6 +67,7 @@ tg.g.remove('a', 'mToN', 'x');
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+  nToM: [],
   mToN: [
     {
       type: t.Node,
@@ -73,6 +77,7 @@ tg.check('a', {
           lid: 'a',
         },
       ],
+      mToN: [],
     },
   ],
 });
@@ -81,6 +86,8 @@ tg.g.remove('y', 'nToM', 'a');
 tg.check('a', {
   type: t.Node,
   lid: 'a',
+  nToM: [],
+  mToN: [],
 });
 
 tg.g.put({
@@ -104,6 +111,7 @@ tg.check('x', {
     {
       type: t.Node,
       lid: 'a',
+      nToM: [],
       mToN: [
         {
           lid: 'x',
@@ -113,6 +121,7 @@ tg.check('x', {
     {
       type: t.Node,
       lid: 'b',
+      nToM: [],
       mToN: [
         {
           lid: 'x',
@@ -120,4 +129,5 @@ tg.check('x', {
       ],
     },
   ],
+  mToN: [],
 });

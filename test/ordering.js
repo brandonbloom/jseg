@@ -51,24 +51,29 @@ tg.g.put({
 tg.check('root', {
   type: t.Node,
   lid: 'root',
+  index: null,
+  parent: null,
   children: [
     {
       type: t.Node,
       lid: 'a',
       index: 1,
       parent: {lid: 'root'},
+      children: [],
     },
     {
       type: t.Node,
       lid: 'b',
       index: 2,
       parent: {lid: 'root'},
+      children: [],
     },
     {
       type: t.Node,
       lid: 'c',
       index: 3,
       parent: {lid: 'root'},
+      children: [],
     },
   ],
 });
