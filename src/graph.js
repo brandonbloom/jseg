@@ -10,7 +10,7 @@ class Graph {
     this._schema = schema;
 
     this._options = Object.assign({
-      log: console.error,
+      log: (...args) => console.error(...args),
     }, options);
 
     // Construct indexes as map of defining type name -> field name -> obj.
