@@ -17,11 +17,11 @@ A in-memory graph database for JavaScript data.
 
 # Status
 
-Expect bugs and API changes. This is version 2 with lots of new/improved
-stuff, but not yet battle tested.
-
-Version 1 is in active use in one real product. Check out [the v1 branch][1].
-Unlikely to see much future work, but bug fixes are welcome.
+This is version 2 with lots of new/improved stuff and is deployed
+in at least one real product. I'm not personally working on that
+product anymore, but this version has been pretty stable and
+useful there, so I don't expect much if any churn. I'm unlikely to
+consider major feature requests, but bug fixes are still welcome.
 
 See [the v1 readme][2] for rationale, background, goals, etc.
 
