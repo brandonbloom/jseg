@@ -79,7 +79,7 @@ if cascading is specified in the schema.
 
 ### Remove
 
-graph.destroy(*fromLid*, *fieldName*, *toLid*)
+graph.remove(*fromLid*, *fieldName*, *toLid*)
 
 Removes a related object from a set of references.
 
