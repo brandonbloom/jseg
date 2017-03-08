@@ -29,7 +29,7 @@ or recursively with the `depth` option.
 
 Null field values and empty collections are included.
 
-Returns null if no if the object does not exist.
+Returns null if the object does not exist.
 
 
 ```javascript
