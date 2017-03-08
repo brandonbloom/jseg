@@ -81,7 +81,7 @@ Attributes are fields containing "scalar" values.
 Attributes are specified in the `finalize` configuration map as a nested map
 of type names to field names to types for those fields.
 
-If customize the behavior of an attribute, create a custom scalar type.
+To customize the behavior of an attribute, create a custom scalar type.
 
 ### Special Attributes
 
