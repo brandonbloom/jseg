@@ -1,6 +1,6 @@
 # JavaScript Entity Graph
 
-A in-memory graph database for JavaScript data.
+An in-memory graph database for JavaScript data.
 
 
 ## Overview
